@@ -1,0 +1,5 @@
+# The configs version
+version: 1
+
+# Enable/Disable Update Notification
+UpdateNotification: true

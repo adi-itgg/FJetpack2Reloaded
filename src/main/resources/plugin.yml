@@ -1,0 +1,51 @@
+name: FJetpack2Reloaded
+version: '${version}'
+main: me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded
+api-version: 1.13
+prefix: FJetpack2Reloaded
+loadbefore: [ SuperiorSkyblock2 ]
+softdepend: [ GriefPrevention ]
+authors: [ PhantomXCraft ]
+description: Jetpack Plugin - Lightweight - Fuel System - Multi Jetpack with customizable configuration
+website: https://www.spigotmc.org/resources/fjetpackreloaded.100816/
+commands:
+  fjetpack2reloaded:
+    description: FJetpack2Reloaded Main command.
+    aliases:
+      - fj2r
+permissions:
+  fjetpack2reloaded.*:
+    description: Allows to use of all FJetpack2Reloaded commands.
+    default: op
+    children:
+      fjetpack2reloaded.reload: true
+      fjetpack2reloaded.set: true
+      fjetpack2reloaded.get: true
+      fjetpack2reloaded.give: true
+      fjetpack2reloaded.getfuel: true
+      fjetpack2reloaded.givefuel: true
+      fjetpack2reloaded.checkupdate: true
+  fjetpack2reloaded.checkupdate:
+    description: Check update this plugin
+    default: false
+  fjetpack2reloaded.get:
+    description: Get/Give the jetpack item
+    default: false
+  fjetpack2reloaded.getfuel:
+    description: Get/Give the custom fuel item
+    default: false
+  fjetpack2reloaded.give:
+    description: Get/Give the jetpack item
+    default: false
+  fjetpack2reloaded.givefuel:
+    description: Get/Give the custom fuel item
+    default: false
+  fjetpack2reloaded.help:
+    description: Allows FJetpack2Reloaded help command
+    default: true
+  fjetpack2reloaded.reload:
+    description: Reload all configs plugin
+    default: false
+  fjetpack2reloaded.set:
+    description: Set jetpack item in hand
+    default: false

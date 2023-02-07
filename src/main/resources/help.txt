@@ -1,0 +1,15 @@
+&8
+&7-------------- [ &3FJetpack2&6Reloaded&7 ] --------------
+&bAll Command List
+&8
+&8&l- &3/FJ2R [Get|Give] (Player) [Jetpack] <Fuel> &r- &bGet/Give a Jetpack
+&8&l- &3/FJ2R [GetFuel|GiveFuel] (Player) [CustomFuel] <Amount> &r- &bGet/Give a Custom Fuel
+&8&l- &3/FJ2R Set [Jetpack] <Fuel> &r- &bSet Jetpack in hand
+&8&l- &3/FJ2R SetFuel <Amount> &r- &bSet Fuel Amount Jetpack in hand
+&8&l- &3/FJ2R Reload &r- &bReload Config Plugin
+&8&l- &3/FJ2R CheckUpdate &r- &bCheck Update Plugin
+&8
+&3Made by &aPhantomXCraft
+&3Version: &bv#{version}
+&7-------------- [ &3FJetpack2&6Reloaded&7 ] --------------
+&8

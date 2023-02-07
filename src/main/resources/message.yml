@@ -1,0 +1,56 @@
+# Leave Empty message will disable the message
+#
+# Message prefix
+Prefix: '&e&l[&bFJetpack2&6Reloaded&e&l]&r'
+# When jetpack turned on
+TurnOn: '&a&lON'
+# When jetpack turned off
+TurnOff: '&4&lOFF'
+# Player don't have premission
+NoPermission: "&cYou don't have permission!"
+# Jetpack removed from equipment
+Detached: '&cYou take off your Jetpack, making you fall to the ground'
+# Jetpack out of fuel
+OutOfFuel: '&cYou are out of fuel!'
+# Player using jetpack in blocked worlds
+BlockedWorlds: "&cYou can't use Jetpack in this World!"
+# Jetpack don't have enough fuel
+NoFuel: "&cYou don't have fuel to fly!"
+# When the jetpack runs out of fuel, it will fall to the ground
+OnEmptyFuelDropped: '&cJetpack out of fuel has been dropped!'
+# When the jetpack runs out of fuel, it will removed from player
+OnEmptyFuelRemoved: '&cJetpack out of fuel has been removed!'
+# When player died, iit will fall to the ground
+OnDeathDropped: '&cYou died jetpack has been dropped!'
+# When player died, it will removed from player
+OnDeathRemoved: '&cYou died jetpack has been removed!'
+# Turn on jetpack, but outside claim!
+GriefPreventionOutsideClaim: "&cYou didn't inside claim!"
+# Turn off jetpack if player outside claim while flying
+GriefPreventionTurnedOffOutsideClaim: '&cYou outside claim jetpack is turned off'
+# Turn on jetpack, but outside player own claim
+GriefPreventionOutsideOwnClaim: '&cYou are not in your own claim!'
+# If island flag is not allowed to fly inside island
+SuperiorSkyblock2NoFlag: "&cYou're not allowed to fly in this island!"
+# If player doesn't have permission to fly inside island
+SuperiorSkyblock2NoPermission: "&cYou don't have permission to fly in this island!"
+# If player outside island
+SuperiorSkyblock2OutsideIsland: "&cJetpack turned off, you're outside the island!"
+WarnRunOutBelow: "&cFuel will run out, only &l#{amount}&c fuel's left"
+CmdGetSelf: "&aGive item &6#{jetpack} &aJetpack with fuel &6&lx#{fuel_value}&r &ato your self success!"
+CmdGiveSuccess: "&aGive item to &6#{jetpack} &aJetpack with fuel &6&lx#{fuel_value}&r &ato player &e#{player}&a success!"
+CmdSet: '&aSuccess set item to jetpack #{jetpack} with fuel amount &6&lx#{fuel_value}'
+CmdGiveReceived: '&aYou have been given a &6#{jetpack}&a Jetpack with fuel &6&lx#{fuel_value}&r &afrom &e#{sender}'
+CmdReload: '&aReload Config Success!'
+CmdFuelSet: '&aSuccess set fuel jetpack to &6#{amount}'
+CmdFuelGetSelf: "&aGive item &6#{custom_fuel} &aJetpack with fuel &6&lx#{amount}&r &ato your self success!"
+CmdFuelGiveSuccess: "&aGive item to &6#{custom_fuel} &aCustomFuel with amount &6&lx#{amount}&r &ato player &e#{player}&a success!"
+CmdFuelGiveReceived: '&aYou have been given a &6#{custom_fuel}&a Custom fuel with amount &6&lx#{amount}&r &afrom &e#{sender}'
+CmdPlayerOnly: '&cThis command can run only in game as player!'
+NoItemInMainHand: "&cYou not holding any item!"
+InventoryFull: "&cInventory is full!, dropped the item. location: #{x} #{y} #{z}"
+NotJetpackItem: "&cThis item is not Jetpack item!"
+InvalidNumber: "&cInvalid number input!"
+NoUpdate: '&aThere is not a new update available. You are using the latest version'
+UsingDevVersion: '&aThere is not a new update available. You are using the latest dev build version'
+FoundUpdate: '&aThere is a new update available! v#{version}'

@@ -1,0 +1,20 @@
+CVIP:
+  # Custom display name the fuel in jetpack placeholder {#fuel}
+  # Leave empty, will using DisplayName
+  CustomDisplay: '&6&lPertamax'
+  # Display Name item
+  DisplayName: '&b&lC&6&lVIP'
+  # The lore of item
+  Lore:
+    - ''
+    - '&eFuel for &l&6VIP!'
+    - ''
+    - '&6&lPremium &efuel'
+  # Item minecraft item id
+  Item: GOLD_INGOT
+  # Permission to use this fuel (refill)
+  Permission: 'fjetpack2reloaded.fuel.#id'
+  # Glow this item
+  Glowing: true
+  # Set Custom Model Data, -1 to disable
+  CustomModelData: -1

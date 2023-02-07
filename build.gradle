@@ -1,0 +1,118 @@
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.3.1'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'me.phantomx.fjetpack.two.reloaded'
+version = '1.0-Beta'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.bg-software.com/repository/api/' }
+}
+
+dependencies {
+
+    implementation 'org.bstats:bstats-bukkit:3.0.0'
+
+    compileOnly 'com.github.TechFortress:GriefPrevention:16.18'
+    compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:1.11.0'
+
+    compileOnly "org.apache.commons:commons-lang3:3.12.0"
+    compileOnly 'org.jetbrains:annotations:20.1.0'
+
+    //noinspection VulnerableLibrariesLocal
+    compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+ext.baseCoordinates = "${project.name}-${project.version}"
+
+tasks.register('proguard', ProGuardTask) {
+    configuration file('proguard.pro')
+
+    //injars(tasks.named('jar', Jar).flatMap { it.archiveFile })
+    injars(tasks.named('shadowJar', Jar).flatMap { it.archiveFile })
+
+    // Automatically handle the Java version of this build.
+    if (System.getProperty('java.version').startsWith('1.')) {
+        // Before Java 9, the runtime classes were packaged in a single jar file.
+        libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    } else {
+        // As of Java 9, the runtime classes are packaged in modular jmod files.
+        libraryjars "${System.getProperty('java.home')}/jmods/java.base.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+        //libraryjars "${System.getProperty('java.home')}/jmods/....."
+    }
+
+    verbose
+
+    outjars(layout.buildDirectory.file("libs/${baseCoordinates}-minified.jar"))
+}
+
+shadowJar {
+    relocate 'org.bstats', 'me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.bstats'
+}
