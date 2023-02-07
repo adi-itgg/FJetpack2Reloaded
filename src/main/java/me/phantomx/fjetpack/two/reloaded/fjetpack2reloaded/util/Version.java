@@ -18,7 +18,7 @@ import java.util.Scanner;
 
 public class Version {
 
-    private static final int resourceId = 100816;
+    private static final int resourceId = 107883;
 
     @Getter(lazy = true)
     private static final int serverVersion = NumberUtils.toInt(Bukkit.getVersion().split("MC:")[1].split("\\.")[1], 0);
@@ -61,7 +61,7 @@ public class Version {
                     );
 
                     if (pluginVersion < Integer.parseInt(spigotVersion.replaceAll("\\D+", ""))) {
-                        Messages.sendMessage(sender ,"&bThere is a new update available! v%s", spigotVersion);
+                        Messages.sendMessage(sender ,"&bThere is a new update available! v%s\nhttps://www.spigotmc.org/resources/fjetpack2reloaded.107883/", spigotVersion);
                         return;
                     }
                     Messages.sendMessage(sender, "&aThere is not a new update available. You are using the latest version");
