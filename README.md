@@ -28,13 +28,13 @@ Jetpack Plugin - Lightweight - Fuel System - Multi Jetpack with customizable con
 | fjetpack2reloaded.reload | Allow player to use command /fjr reload |
 | fjetpack2reloaded.{jetpack} | Allow player to use Jetpack (from config) |
 | fjetpack2reloaded.{jetpack}.refill | Allow player to refuel Jetpack |
-| fjetpack2reloaded.<jetpack>.keep.on.empty | Allow player to bypass on empty fuel |
-| fjetpack2reloaded.<jetpack>.keep.on.death | Allow player to bypass on death fuel |
-| fjetpack2reloaded.<jetpack>.bypass.fuel | Allow player to bypass on fuel cost |
-| fjetpack2reloaded.<jetpack>.bypass.fuel.sprint | Allow player to bypass on sprint fuel cost |
-| fjetpack2reloaded.<jetpack>.bypass.ss2.flag | Allow player to bypass SuperiorSkyblock2 flag |
-| fjetpack2reloaded.<jetpack>.bypass.ss2.privilege | Allow player to bypass SuperiorSkyblock2 privilege |
-| fjetpack2reloaded.<jetpack>.bypass.gp.claim | Allow player to bypass GriefPrevention claim |
+| fjetpack2reloaded.{jetpack}.keep.on.empty | Allow player to bypass on empty fuel |
+| fjetpack2reloaded.{jetpack}.keep.on.death | Allow player to bypass on death fuel |
+| fjetpack2reloaded.{jetpack}.bypass.fuel | Allow player to bypass on fuel cost |
+| fjetpack2reloaded.{jetpack}.bypass.fuel.sprint | Allow player to bypass on sprint fuel cost |
+| fjetpack2reloaded.{jetpack}.bypass.ss2.flag | Allow player to bypass SuperiorSkyblock2 flag |
+| fjetpack2reloaded.{jetpack}.bypass.ss2.privilege | Allow player to bypass SuperiorSkyblock2 privilege |
+| fjetpack2reloaded.{jetpack}.bypass.gp.claim | Allow player to bypass GriefPrevention claim |
 
 ## bStats
 ![bStats](https://bstats.org/signatures/bukkit/FJetpack2Reloaded.svg)
