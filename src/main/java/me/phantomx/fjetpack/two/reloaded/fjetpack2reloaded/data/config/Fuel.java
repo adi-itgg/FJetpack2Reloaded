@@ -14,11 +14,11 @@ public class Fuel {
 
     private @Nullable CustomFuel customFuel;
     private @NonNull Material item;
-    private int warnRunOutBelow;
-    private int cost;
-    private int sprintCost;
-    private int burnRate;
-    private int customModelData;
+    private int warnRunOutBelow = 5;
+    private int cost = 1;
+    private int sprintCost = 1;
+    private int burnRate = 5;
+    private int customModelData = -1;
     private boolean allowBypassCost;
     private boolean allowBypassSprintCost;
 

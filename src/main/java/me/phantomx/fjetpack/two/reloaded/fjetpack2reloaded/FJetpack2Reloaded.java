@@ -69,6 +69,7 @@ public class FJetpack2Reloaded extends JavaPlugin {
         getFJ2RPlayers().values().forEach(activePlayer -> {
             activePlayer.turnOff(false, false, false, true);
         });
+        getFJ2RPlayers().clear();
         Configs.getJetpacksLoaded().clear();
     }
 

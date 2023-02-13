@@ -1,4 +1,4 @@
-# jetpack id
+# jetpack id is VIP
 VIP:
   # Display the item name
   DisplayName: '&8&l[&bFJetpack2&6&lReloaded&8&l]'
@@ -16,7 +16,7 @@ VIP:
   # use #id will replace the jetpack id
   # example: fjetpack2reloaded.#id -> fjetpack2reloaded.vip
   Permission: 'fjetpack2reloaded.#id'
-  # The minecraft item id (Supports all armor items)
+  # The minecraft item id (Supports all items)
   Item: CHAINMAIL_CHESTPLATE
   # ItemColor for leather armor only!
   # Example for colored leather armor:
@@ -56,6 +56,8 @@ VIP:
     - 'DURABILITY:3'
   # Blocked worlds
   BlockedWorlds: []
+  # Allow player to use jetpack item only in offhand
+  RunInOffHandOnly: false
 
   # Refill fuel only work survival mode not creative!
   # Refill permission fjetpack2reloaded.#id.fuel.refill
@@ -114,9 +116,10 @@ VIP:
     # fjetpack2reloaded.#id.bypass.ss2.privilege
     AllowBypassPrivilege: false
 
+# too lazy create new jetpack with default config but little different?
+# You also can simplify configuration like this
 Member:
   DisplayName: '&8&l[&bFJetpack2&6&lReloaded&8&l]'
-  # Lore item
   Lore:
     - '&3&m&l----===[&r &8 &b&lINFO &8 &3&m&l]===----'
     - '&9Rank: &b&lMember'
@@ -130,28 +133,10 @@ Member:
   Item: LEATHER_CHESTPLATE
   ItemColor:
     R: 255
-    G: 0
-    B: 0
-  Unbreakable: false
-  OnEmptyFuel: NONE
-  OnDeath: NONE
-  CustomModelData: -1
-  Speed: 1.1
   Flags:
     - HIDE_ATTRIBUTES
     - HIDE_ENCHANTS
-  Enchantments:
-    - 'unbreaking:3'
-    - 'DURABILITY:3'
-  BlockedWorlds: []
 
   Fuel:
-    CustomFuel: NONE
     Item: COAL
-    Cost: 1
-    SprintCost: 1
-    CustomModelData: -1
-    BurnRate: 5
-    WarnRunOutBelow: 5
-    AllowBypassCost: false
-    AllowBypassSprintCost: false
+    SprintCost: 2

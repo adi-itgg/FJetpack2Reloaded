@@ -81,14 +81,7 @@ public class ItemUtil {
     }
     public static @NotNull Catcher<ItemStack> setItemAsJetpack(@NotNull CommandSender sender, @NotNull ItemStack item, @NotNull Jetpack jetpack, long fuelValue) {
         return Catcher.create(() -> {
-
-            val customFuel = jetpack.getFuel().getCustomFuel();
-            var fuelDisplay = jetpack.getFuel().getItem().name().replace("_", " ");
-            if (customFuel != null)
-                fuelDisplay = customFuel.getCustomDisplay().isEmpty() ? customFuel.getDisplayName() : customFuel.getCustomDisplay();
-            if (customFuel == null)
-                fuelDisplay = StringUtils.capitalize(fuelDisplay.toLowerCase());
-            val finalFuelDisplay = fuelDisplay;
+            val finalFuelDisplay = getDisplayFuel(jetpack);
 
             val itemMeta = item.getItemMeta();
             if (itemMeta == null) {
@@ -129,6 +122,16 @@ public class ItemUtil {
 
             return finalResultItem;
         });
+    }
+
+    public static @NotNull String getDisplayFuel(@NotNull Jetpack jetpack) {
+        val customFuel = jetpack.getFuel().getCustomFuel();
+        var fuelDisplay = jetpack.getFuel().getItem().name().replace("_", " ");
+        if (customFuel != null)
+            fuelDisplay = customFuel.getCustomDisplay().isEmpty() ? customFuel.getDisplayName() : customFuel.getCustomDisplay();
+        if (customFuel == null)
+            fuelDisplay = StringUtils.capitalize(fuelDisplay.toLowerCase());
+        return fuelDisplay;
     }
 
 }

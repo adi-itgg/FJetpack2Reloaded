@@ -7,7 +7,6 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemMetaData;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -31,35 +30,9 @@ public class OnPlayerInventoryClickEvent {
         val cursorItem = e.getCursor() ;
         val slotItem = e.getCurrentItem();
         if (cursorItem == null || slotItem == null) return;
-        Log.log("cursorItem: %s - %s", cursorItem.getType().name(), slotItem.getType().name());
+        Log.log("cursorItem: %s - %s (%s)", cursorItem.getType().name(), slotItem.getType().name(), e.getSlotType().name());
 
-        val fj2RPlayer = FJ2RPlayer.getAsFJ2RPlayer(player);
-
-        // check if player is flying using jetpack and check jetpack is exists from equipment
-        if (fj2RPlayer.isActive() && e.getSlotType() == InventoryType.SlotType.ARMOR) {
-            if (ItemMetaData.isItemArmorFast(cursorItem) || ItemMetaData.isItemArmorFast(slotItem)) {
-                if (ItemMetaData.isActiveJetpack(slotItem, fj2RPlayer.getJetpackUniqueId())) {
-                    Messages.sendMessage(player,
-                            player.isFlying()
-                                    ? Configs.getMessage().getDetached()
-                                    : Configs.getMessage().getTurnOff()
-                    );
-                    fj2RPlayer.turnOff();
-                } else {
-                    AtomicBoolean jetpackExist = new AtomicBoolean(false);
-                    fj2RPlayer.updateActiveJetpackArmorEquipment(item -> {
-                        jetpackExist.set(true);
-                        return item;
-                    });
-                    if (!jetpackExist.get()) {
-                        Messages.sendMessage(player, player.isFlying()
-                                ? Configs.getMessage().getDetached()
-                                : Configs.getMessage().getTurnOff());
-                        fj2RPlayer.turnOff();
-                    }
-                }
-            }
-        }
+        checkJetpack(e, cursorItem, slotItem);
 
         if (cursorItem.getType() == Material.AIR || slotItem.getType() == Material.AIR) return;
 
@@ -100,9 +73,35 @@ public class OnPlayerInventoryClickEvent {
         }
         cursorItem.setAmount(cursorItem.getAmount() - 1);
         player.setItemOnCursor(cursorItem);
+    }
 
-
-
+    private static void checkJetpack(@NotNull InventoryClickEvent e, @NotNull ItemStack cursorItem, @NotNull ItemStack slotItem) {
+        val fj2RPlayer = FJ2RPlayer.getAsFJ2RPlayer((Player) e.getWhoClicked());
+        // check if player is flying using jetpack and check jetpack is exists from offhand
+        if (fj2RPlayer.isActive() && fj2RPlayer.getJetpack() != null && fj2RPlayer.getJetpack().isRunInOffHandOnly()) {
+            if (slotItem.getType() == Material.AIR || e.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
+            val offHandItem = fj2RPlayer.getPlayer().getInventory().getItemInOffHand();
+            if (!fj2RPlayer.isJetpack(offHandItem, false)) {
+                fj2RPlayer.turnOffDetached();
+                return;
+            }
+            if (!offHandItem.isSimilar(slotItem)) return;
+            fj2RPlayer.turnOffDetached();
+            return;
+        }
+        // check if player is flying using jetpack and check jetpack is exists from equipment
+        if (fj2RPlayer.isActive() || e.getSlotType() != InventoryType.SlotType.ARMOR) return;
+        if (!ItemMetaData.isItemArmorFast(cursorItem) || !ItemMetaData.isItemArmorFast(slotItem)) return;
+        if (ItemMetaData.isActiveJetpack(slotItem, fj2RPlayer.getJetpackUniqueId())) {
+            fj2RPlayer.turnOffDetached();
+            return;
+        }
+        AtomicBoolean jetpackExist = new AtomicBoolean(false);
+        fj2RPlayer.updateActiveJetpackArmorEquipment(item -> {
+            jetpackExist.set(true);
+            return item;
+        });
+        if (!jetpackExist.get()) fj2RPlayer.turnOffDetached();
     }
 
 }

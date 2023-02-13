@@ -9,6 +9,7 @@ import org.bukkit.permissions.Permission;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -20,19 +21,20 @@ public class Jetpack {
     private @NonNull Permission permission;
     private @NonNull Material item;
     private @Nullable ItemColor itemColor;
-    private @NonNull List<String> lore;
-    private @NonNull List<String> flags;
-    private @NonNull List<String> enchantments;
-    private @NonNull List<String> blockedWorlds;
-    private @NonNull JetpackEvent onEmptyFuel;
-    private @NonNull JetpackEvent onDeath;
+    private @NonNull List<String> lore = Collections.emptyList();
+    private @NonNull List<String> flags = Collections.emptyList();
+    private @NonNull List<String> enchantments = Collections.emptyList();
+    private @NonNull List<String> blockedWorlds = Collections.emptyList();
+    private @NonNull JetpackEvent onEmptyFuel = JetpackEvent.NONE;
+    private @NonNull JetpackEvent onDeath = JetpackEvent.NONE;
     private @NonNull Fuel fuel;
     private @Nullable ParticleEffect particle;
     private @Nullable GriefPrevention griefPrevention;
     private @Nullable SuperiorSkyblock2 superiorSkyblock2;
-    private @NonNull Float speed;
-    private int customModelData;
+    private @NonNull Float speed = 1.1f;
+    private int customModelData = -1;
     private boolean unbreakable;
+    private boolean runInOffHandOnly;
 
     public String getPermission(@NotNull String child) {
         return getPermission().getName() + child;
@@ -59,6 +61,7 @@ public class Jetpack {
                 ", speed=" + speed +
                 ", customModelData=" + customModelData +
                 ", unbreakable=" + unbreakable +
+                ", runInOffHand=" + runInOffHandOnly +
                 '}';
     }
 }

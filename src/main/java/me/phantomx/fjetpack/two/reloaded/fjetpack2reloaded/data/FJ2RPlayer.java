@@ -6,6 +6,7 @@ import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import lombok.*;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemUtil;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.JetpackEvent;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.GriefPrevention;
@@ -21,7 +22,6 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import me.ryanhamshire.GriefPrevention.Claim;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
@@ -151,19 +151,13 @@ public class FJ2RPlayer {
     public static void updateDisplayItem(@NotNull Jetpack jetpack, @NotNull ItemStack item, long finalFuel) {
         val itemMeta = item.getItemMeta();
         if (itemMeta != null) {
-            val customFuel = jetpack.getFuel().getCustomFuel();
-            var fuelDisplay = jetpack.getFuel().getItem().name().replace("_", " ");
-            if (customFuel != null)
-                fuelDisplay = customFuel.getCustomDisplay().isEmpty() ? customFuel.getDisplayName() : customFuel.getCustomDisplay();
-            if (customFuel == null)
-                fuelDisplay = StringUtils.capitalize(fuelDisplay.toLowerCase());
-            val finalFuelDisplay = fuelDisplay;
+            val displayFuel = ItemUtil.getDisplayFuel(jetpack);
 
             if (Version.getServerVersion() > 16)
                 itemMeta.setUnbreakable(jetpack.isUnbreakable());
             itemMeta.setDisplayName(jetpack.getDisplayName());
             itemMeta.setLore(jetpack.getLore().stream()
-                    .map(v -> v.replace(Placeholder.FUEL, finalFuelDisplay)
+                    .map(v -> v.replace(Placeholder.FUEL, displayFuel)
                             .replace(Placeholder.FUEL_VALUE, String.valueOf(finalFuel))
                     ).toList());
             item.setItemMeta(itemMeta);
@@ -269,6 +263,83 @@ public class FJ2RPlayer {
             }
         });
     }
+
+    public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel) {
+        return isJetpack(stack, consumeFuel, false);
+    }
+    public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
+        if (stack == null || stack.getType() == Material.AIR) return false;
+
+        val jetpackId = ItemMetaData.getJetpackID(stack, "");
+        val jetpack = Configs.getJetpacksLoaded().get(jetpackId);
+        assert jetpack != null;
+
+        if (stack.getType() != jetpack.getItem()) return false;
+        if (this.jetpack != null && isActive() && !jetpack.getId().equals(this.jetpack.getId())) return false;
+
+        if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
+            NoPermissionLvlException.send();
+
+        val isWorldBlocked = jetpack.getBlockedWorlds().stream()
+                .anyMatch(world -> player.getWorld().getName().equals(world));
+        if (isWorldBlocked) {
+            Messages.sendMessage(player, Configs.getMessage().getBlockedWorlds());
+            IMessageException.send();
+        }
+
+        if (!isAllowedSuperiorSkyblock())
+            IMessageException.send();
+
+        if (!isAllowedGriefPrevention())
+            IMessageException.send();
+
+
+        var fuel = ItemMetaData.getFuelValue(stack);
+        assert fuel != null;
+        val canBypassCost = Permissions.hasRawPermission(player,
+                jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SUFFIX
+        );
+        if (!canBypassCost && fuel < jetpack.getFuel().getCost()) {
+            updateDisplayItem(jetpack, stack, fuel);
+            onOutOfFuel();
+            IMessageException.send();
+        }
+        if (!canBypassCost)
+            fuel -= jetpack.getFuel().getCost();
+
+        val canBypassSprintCost = Permissions.hasRawPermission(player,
+                jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SPRINT_SUFFIX
+        );
+        if (!canBypassSprintCost && player.isSprinting() && fuel < jetpack.getFuel().getSprintCost()) {
+            updateDisplayItem(jetpack, stack, fuel);
+            onOutOfFuel();
+            IMessageException.send();
+        }
+        if (!canBypassSprintCost && player.isSprinting())
+            fuel -= jetpack.getFuel().getSprintCost();
+
+        if (updateCurrentJetpack)
+            setJetpack(jetpack);
+
+        if (!consumeFuel) {
+            stack = ItemMetaData.setActiveJetpack(stack, generateNewRandomId());
+            @NotNull ItemStack finalArmor = stack;
+            updateActiveJetpackArmorEquipment(item -> finalArmor);
+            return true;
+        }
+
+        if (jetpack.getFuel().getWarnRunOutBelow() != -1 && fuel <= jetpack.getFuel().getWarnRunOutBelow())
+            Messages.sendMessage(player,
+                    Configs.getMessage().getWarnRunOutBelow().replace(Placeholder.AMOUNT, String.valueOf(fuel))
+            );
+
+        updateDisplayItem(jetpack, stack, fuel);
+        stack = ItemMetaData.setFuelValue(stack, fuel);
+        @NotNull ItemStack finalArmor = stack;
+        updateActiveJetpackArmorEquipment(item -> finalArmor);
+        return true;
+    }
+
     @Contract(pure = true)
     private void burnAction() {
         assert jetpack != null;
@@ -276,86 +347,33 @@ public class FJ2RPlayer {
         if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
             NoPermissionLvlException.send();
 
-
         if (!starting && ((LivingEntity) player).isOnGround() && !player.isFlying()) return;
+
+        if (jetpack != null && jetpack.isRunInOffHandOnly()) {
+            val offHandItem = player.getInventory().getItemInOffHand();
+            if (!isJetpack(offHandItem, !starting)) {
+                turnOff();
+                Messages.sendMessage(player, Configs.getMessage().getDetached());
+            }
+            return;
+        }
 
         val equipment = player.getEquipment();
         assert equipment != null;
-        for (@Nullable ItemStack armor : equipment.getArmorContents()) {
-            if (armor == null || armor.getType() == Material.AIR) continue;
+        for (@Nullable ItemStack armor : equipment.getArmorContents())
+            if (isJetpack(armor, !starting)) return;
 
-            val jetpackId = ItemMetaData.getJetpackID(armor, "");
-            val jetpack = Configs.getJetpacksLoaded().get(jetpackId);
-            assert jetpack != null;
-
-            if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
-                NoPermissionLvlException.send();
-
-            val isWorldBlocked = jetpack.getBlockedWorlds().stream()
-                    .anyMatch(world -> player.getWorld().getName().equals(world));
-            if (isWorldBlocked) {
-                Messages.sendMessage(player, Configs.getMessage().getBlockedWorlds());
-                IMessageException.send();
-            }
-
-            if (!isAllowedSuperiorSkyblock())
-                IMessageException.send();
-
-            if (!isAllowedGriefPrevention())
-                IMessageException.send();
-
-
-            var fuel = ItemMetaData.getFuelValue(armor);
-            assert fuel != null;
-            val canBypassCost = Permissions.hasRawPermission(player,
-                    jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SUFFIX
-            );
-            if (!canBypassCost && fuel < jetpack.getFuel().getCost()) {
-                updateDisplayItem(jetpack, armor, fuel);
-                onOutOfFuel();
-                IMessageException.send();
-            }
-            if (!canBypassCost)
-                fuel -= jetpack.getFuel().getCost();
-
-            val canBypassSprintCost = Permissions.hasRawPermission(player,
-                    jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SPRINT_SUFFIX
-            );
-            if (!canBypassSprintCost && player.isSprinting() && fuel < jetpack.getFuel().getSprintCost()) {
-                updateDisplayItem(jetpack, armor, fuel);
-                onOutOfFuel();
-                IMessageException.send();
-            }
-            if (!canBypassSprintCost && player.isSprinting())
-                fuel -= jetpack.getFuel().getSprintCost();
-
-            if (starting) {
-                armor = ItemMetaData.setActiveJetpack(armor, generateNewRandomId());
-                @NotNull ItemStack finalArmor = armor;
-                updateActiveJetpackArmorEquipment(item -> finalArmor);
-                return;
-            }
-
-            if (jetpack.getFuel().getWarnRunOutBelow() != -1 && fuel <= jetpack.getFuel().getWarnRunOutBelow())
-                Messages.sendMessage(player,
-                        Configs.getMessage().getWarnRunOutBelow().replace(Placeholder.AMOUNT, String.valueOf(fuel))
-                );
-
-            updateDisplayItem(jetpack, armor, fuel);
-            armor = ItemMetaData.setFuelValue(armor, fuel);
-            @NotNull ItemStack finalArmor = armor;
-            updateActiveJetpackArmorEquipment(item -> finalArmor);
-            return;
-        }
-        turnOff();
-        Messages.sendMessage(player, Configs.getMessage().getDetached());
-
+        turnOffDetached();
     }
 
-    public void turnOn(@NotNull Jetpack jetpack) {
+    /**
+     * require {@link this#setJetpack(Jetpack)} frist!
+     */
+    public void turnOn() {
         if (starting) return;
         starting = true;
-        setJetpack(jetpack);
+
+        assert jetpack != null;
 
         val delayInSec = jetpack.getFuel().getBurnRate();
 
@@ -393,6 +411,14 @@ public class FJ2RPlayer {
 
     }
 
+
+    public void turnOffDetached() {
+        Messages.sendMessage(player, player.isFlying()
+                        ? Configs.getMessage().getDetached()
+                        : Configs.getMessage().getTurnOff()
+        );
+        turnOff();
+    }
     public void turnOff() {
         turnOff(false, false ,false, false);
     }
@@ -403,6 +429,7 @@ public class FJ2RPlayer {
 
     public void turnOff(boolean sendMsg, boolean onDied, boolean onEmptyFuel, boolean unloadedPlugin) {
         if (jetpack == null || !isActive()) return;
+        starting = false;
         setActive(false);
         player.setAllowFlight(false);
 
@@ -443,6 +470,7 @@ public class FJ2RPlayer {
 
         if (sendMsg)
             Messages.sendMessage(player, Configs.getMessage().getTurnOff());
+        jetpack = null;
     }
 
 }
