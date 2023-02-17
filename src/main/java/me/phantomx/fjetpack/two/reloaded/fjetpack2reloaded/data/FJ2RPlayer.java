@@ -272,7 +272,7 @@ public class FJ2RPlayer {
 
         val jetpackId = ItemMetaData.getJetpackID(stack, "");
         val jetpack = Configs.getJetpacksLoaded().get(jetpackId);
-        assert jetpack != null;
+        if (jetpack == null) return false;
 
         if (stack.getType() != jetpack.getItem()) return false;
         if (this.jetpack != null && isActive() && !jetpack.getId().equals(this.jetpack.getId())) return false;

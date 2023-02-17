@@ -1,6 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
@@ -31,6 +32,7 @@ public class RegisterEvent implements Listener {
                 Messages.sendMessage(e.getPlayer(), Configs.getMessage().getNoPermission());
                 return;
             }
+            if (error instanceof IMessageException) return;
             Messages.sendMessage("ERROR " + e.getEventName() + ": %s", error);
         });
     }
@@ -55,6 +57,7 @@ public class RegisterEvent implements Listener {
                 Messages.sendMessage(e.getWhoClicked(), Configs.getMessage().getNoPermission());
                 return;
             }
+            if (error instanceof IMessageException) return;
             Messages.sendMessage("ERROR " + e.getEventName() + ": %s", error);
         });
     }
