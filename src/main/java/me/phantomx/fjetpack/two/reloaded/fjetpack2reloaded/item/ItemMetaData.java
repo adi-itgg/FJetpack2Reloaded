@@ -13,6 +13,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class ItemMetaData {
 
+    public static void setParticle(@NotNull ItemStack itemStack, String particleName) {
+        putString(itemStack, StoredKey.PARTICLE_ID, particleName);
+    }
+    public static @NotNull String getParticle(@NotNull ItemStack itemStack) {
+        return getStringOrDefault(itemStack, StoredKey.PARTICLE_ID, "");
+    }
+
     /**
      * set jetpack id to {@link ItemStack}
      *
