@@ -68,6 +68,7 @@ public class FJ2RPlayer {
             activePlayer = new FJ2RPlayer(player);
             FJetpack2Reloaded.getFJ2RPlayers().put(player.getUniqueId(), activePlayer);
         }
+        activePlayer.setPlayer(player);
         return activePlayer;
     }
 
