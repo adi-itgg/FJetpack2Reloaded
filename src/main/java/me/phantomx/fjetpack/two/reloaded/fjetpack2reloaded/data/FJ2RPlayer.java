@@ -39,7 +39,7 @@ import java.util.UUID;
 
 import static java.lang.Math.sin;
 
-@Data
+@Data @Deprecated
 public class FJ2RPlayer {
 
     private Log log = new Log(this.getClass());
@@ -68,6 +68,7 @@ public class FJ2RPlayer {
             activePlayer = new FJ2RPlayer(player);
             FJetpack2Reloaded.getFJ2RPlayers().put(player.getUniqueId(), activePlayer);
         }
+        activePlayer.setPlayer(player);
         return activePlayer;
     }
 
@@ -270,7 +271,7 @@ public class FJ2RPlayer {
     public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
         if (stack == null || stack.getType() == Material.AIR) return false;
 
-        val jetpackId = ItemMetaData.getJetpackID(stack, "");
+         val jetpackId = ItemMetaData.getJetpackID(stack, "");
         val jetpack = Configs.getJetpacksLoaded().get(jetpackId);
         if (jetpack == null) return false;
 

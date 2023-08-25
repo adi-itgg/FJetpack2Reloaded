@@ -1,11 +1,14 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util;
 
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;
 
 public class Permissions {
+
+    private static final Log log = new Log(Permissions.class);
 
     public static final String PERMISSION_PREFIX = "fjetpack2reloaded.";
 
@@ -31,7 +34,8 @@ public class Permissions {
         return hasRawPermission(sender, permission.getName());
     }
     public static boolean hasRawPermission(@NotNull CommandSender sender, String permission) {
-        return isAdminOrOp(sender) || !((sender instanceof Player)) || sender.hasPermission(permission);
+        log.debug("Perm: %s - isAdminOrOP: %b;isConsole: %b;senderHasPerm: %b", permission, isAdminOrOp(sender), !((sender instanceof Player)), sender.hasPermission(permission));
+        return isAdminOrOp(sender) || !((sender instanceof Player)) || ((Player) sender).hasPermission(permission);
     }
 
 }

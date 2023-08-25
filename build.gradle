@@ -116,3 +116,26 @@ tasks.register('proguard', ProGuardTask) {
 shadowJar {
     relocate 'org.bstats', 'me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.bstats'
 }
+
+tasks.register("debugPlugin") {
+    dependsOn("shadowJar")
+    doLast {
+        File destinationDir = file("C:/Server/plugins")
+        File existingFile = new File(destinationDir, tasks.shadowJar.outputs.files.singleFile.name)
+
+        if (existingFile.exists()) {
+            project.delete(existingFile)
+        }
+
+        project.copy {
+            from(tasks.shadowJar.outputs.files)
+            into(destinationDir)
+        }
+    }
+}
+
+tasks.register('debugServer', Exec) {
+    dependsOn("debugPlugin")
+    commandLine 'java', '-Xmx512M', '-Xms512M', '-jar', 'C:\\Server\\paper-1.20.1-161.jar', 'nogui'
+    workingDir 'C:\\Server'
+}

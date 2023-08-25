@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class Log {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private final String tag;
 

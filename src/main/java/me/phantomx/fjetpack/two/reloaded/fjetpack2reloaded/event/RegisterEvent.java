@@ -64,11 +64,11 @@ public class RegisterEvent implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDamagedEvent(@NotNull EntityDamageEvent e) {
-        log.debug(e.getEventName());
+        //log.debug(e.getEventName());
         Catcher.createVoid(() -> OnPlayerDamagedEvent.onDamaged(e));
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent e) {
         log.debug(e.getEventName());
         Catcher.createVoid(() -> OnPlayerJoinLeaveEvent.onJoin(e));
