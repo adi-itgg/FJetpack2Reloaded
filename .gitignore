@@ -116,3 +116,25 @@ run/
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
+/logs/
+/libraries/
+/config/
+/cache/
+/plugins/
+/versions/
+/world/
+/world_nether/
+/world_the_end/
+/banned-ips.json
+/banned-players.json
+/bukkit.yml
+/commands.yml
+/eula.txt
+/help.yml
+/ops.json
+/permissions.yml
+/server.properties
+/spigot.yml
+/usercache.json
+/version_history.json
+/whitelist.json
