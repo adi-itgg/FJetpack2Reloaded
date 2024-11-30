@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.util.Scanner;
+import java.util.function.Supplier;
 
 
 public class Version {
@@ -23,12 +24,19 @@ public class Version {
     @Getter(lazy = true)
     private static final int serverVersion = NumberUtils.toInt(Bukkit.getVersion().split("MC:")[1].split("\\.")[1], 0);
     @Getter(lazy = true)
-    private static final @NonNull String nmsApiVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+    private static final @NonNull String nmsApiVersion = ((Supplier<String>) () -> {
+        val sp = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
+        if (sp.length > 3) {
+            return sp[3];
+        }
+        return Bukkit.getServer().getVersion();
+    }).get();
 
     @Getter(lazy = true)
     private static final boolean isServerSupport = _isServerSupport();
 
     private static boolean _isServerSupport() {
+        Messages.sendMessage("&6Checking Server Version...");
         if (getServerVersion() == 0) {
             Messages.sendMessage("&cUnknown Server Version!");
             return false;
