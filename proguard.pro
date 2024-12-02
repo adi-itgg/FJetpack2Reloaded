@@ -33,3 +33,6 @@
     public static *** log(...);
     public *** debug(...);
 }
+# keep event's
+-keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event.** { *; }
+-keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.** { *; }
