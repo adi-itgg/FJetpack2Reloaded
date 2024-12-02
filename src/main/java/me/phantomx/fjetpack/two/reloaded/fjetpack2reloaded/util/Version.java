@@ -38,7 +38,7 @@ public class Version {
     private static boolean _isServerSupport() {
         Messages.sendMessage("&6Checking Server Version...");
         if (getServerVersion() == 0) {
-            Messages.sendMessage("&cUnknown Server Version!");
+            Messages.sendMessage("&cUnknown Server Version! - " + Bukkit.getVersion());
             return false;
         }
         if (getServerVersion() > 17) {
