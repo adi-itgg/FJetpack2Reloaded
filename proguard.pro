@@ -6,10 +6,11 @@
 #-printmapping build/mapping.txt
 
 # We only want minification, not obfuscation.
--dontobfuscate
+#-dontobfuscate
 -verbose
 # Keep annotations
 #-keepattributes *Annotation*
+-keepattributes RuntimeVisibleAnnotations
 #-keepattributes Signature
 
 # Entry point to the app.
