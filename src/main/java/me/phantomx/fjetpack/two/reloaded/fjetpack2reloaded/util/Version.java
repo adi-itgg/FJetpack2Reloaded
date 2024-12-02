@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 
 public class Version {
@@ -22,7 +23,24 @@ public class Version {
     private static final int resourceId = 107883;
 
     @Getter(lazy = true)
-    private static final int serverVersion = NumberUtils.toInt(Bukkit.getVersion().split("MC:")[1].split("\\.")[1], 0);
+    private static final int serverVersion = ((Supplier<Integer>) () -> {
+        val pattern = Pattern.compile("\\(MC:\\s*(\\d+\\.\\d+)\\)");
+        val matcher = pattern.matcher(Bukkit.getVersion());
+        if (matcher.find()) {
+            val version = NumberUtils.toInt(matcher.group(1), Integer.MIN_VALUE);
+            if (version != Integer.MIN_VALUE) {
+                return version;
+            }
+        }
+        val versionString = Bukkit.getVersion().split("-")[0];
+        if (versionString.contains(".")) {
+            val version =  NumberUtils.toInt(versionString.split("\\.")[1], Integer.MIN_VALUE);
+            if (version != Integer.MIN_VALUE) {
+                return version;
+            }
+        }
+        return NumberUtils.toInt(versionString, 0);
+    }).get();
     @Getter(lazy = true)
     private static final @NonNull String nmsApiVersion = ((Supplier<String>) () -> {
         val sp = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
