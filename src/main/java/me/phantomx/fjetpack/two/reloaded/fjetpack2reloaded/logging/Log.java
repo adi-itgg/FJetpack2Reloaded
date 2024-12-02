@@ -2,13 +2,14 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging;
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Log {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = Bukkit.getMotd().contains("[DEV-FJ2R-DEBUG]");
 
     private final String tag;
 
