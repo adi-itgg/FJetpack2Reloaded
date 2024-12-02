@@ -3,7 +3,9 @@
 -dump build/class_files.txt
 -printseeds build/seeds.txt
 -printusage build/unused.txt
-#-printmapping build/mapping.txt
+-printmapping build/mapping.txt
+
+-keepattributes SourceFile,LineNumberTable
 
 # We only want minification, not obfuscation.
 #-dontobfuscate
