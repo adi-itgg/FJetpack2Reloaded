@@ -113,6 +113,8 @@ public class Configs {
                     jetpack.setId(id);
                     return jetpack;
                 }).onSuccess(jetpack -> {
+                    jetpack.setDisplayName(Messages.translateColorCodes(jetpack.getDisplayName()));
+                    jetpack.setLore(jetpack.getLore().stream().map(Messages::translateColorCodes).toList());
                     jetpackList.put(jetpack.getId(), jetpack);
                     Log.log("&aLoaded Jetpack:&r %s", jetpack);
                     Messages.sendMessage(sender, "&aLoaded jetpack: &l%s", id);
