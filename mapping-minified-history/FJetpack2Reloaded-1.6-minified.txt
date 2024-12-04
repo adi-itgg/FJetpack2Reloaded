@@ -1482,11 +1482,11 @@ me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log -> me.phantomx.f
     12:12:void <clinit>() -> <clinit>
 me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages -> me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.l.a:
 # {"fileName":"Messages.java","id":"sourceFile"}
-    21:36:java.lang.String translateColorCodes(java.lang.String) -> a
-    41:42:void sendMessage(org.bukkit.command.CommandSender,java.lang.String,java.lang.Object[]) -> a
-    44:71:void sendMessage(boolean,org.bukkit.command.CommandSender,java.lang.String,java.lang.Object[]) -> a
-    79:80:void sendMessage(java.lang.String,java.lang.Object[]) -> a
-    45:45:java.lang.String lambda$sendMessage$0() -> a
+    22:38:java.lang.String translateColorCodes(java.lang.String) -> a
+    43:44:void sendMessage(org.bukkit.command.CommandSender,java.lang.String,java.lang.Object[]) -> a
+    46:73:void sendMessage(boolean,org.bukkit.command.CommandSender,java.lang.String,java.lang.Object[]) -> a
+    81:82:void sendMessage(java.lang.String,java.lang.Object[]) -> a
+    47:47:java.lang.String lambda$sendMessage$0() -> a
 me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions -> me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.m.a:
 # {"fileName":"Permissions.java","id":"sourceFile"}
     23:23:boolean isAdminOrOp(org.bukkit.command.CommandSender) -> a
