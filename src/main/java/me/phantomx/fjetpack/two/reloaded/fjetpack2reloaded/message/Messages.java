@@ -11,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Messages {
@@ -18,21 +19,22 @@ public class Messages {
     public static final String DEFAULT_PREFIX = "&e&l[&bFJetpack&62Reloaded&e&l]&r";
 
     public static @NotNull String translateColorCodes(@NotNull String message) {
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        if (Version.getServerVersion() >= 16) {
-            // translate hex
-            val pattern = Pattern.compile("#[a-fA-F0-9]{6}");
-            var matcher = pattern.matcher(message);
-            val builder = new StringBuilder();
-            while (matcher.find()) {
-                builder.setLength(0);
-                val hexCode = message.substring(matcher.start(), matcher.end());
-                val ch = hexCode.replace('#', 'x').toCharArray();
-                for (val c : ch) builder.append("&").append(c);
-                message = message.replace(hexCode, builder.toString());
-                matcher = pattern.matcher(message);
+        Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
+        Matcher matcher = pattern.matcher(message);
+        while (matcher.find()) {
+            String hexCode = message.substring(matcher.start(), matcher.end());
+            String replaceSharp = hexCode.replace('#', 'x');
+
+            char[] ch = replaceSharp.toCharArray();
+            StringBuilder builder = new StringBuilder();
+            for (char c : ch) {
+                builder.append("&").append(c);
             }
+
+            message = message.replace(hexCode, builder.toString());
+            matcher = pattern.matcher(message);
         }
+        message = ChatColor.translateAlternateColorCodes('&', message);
         return message;
     }
 
