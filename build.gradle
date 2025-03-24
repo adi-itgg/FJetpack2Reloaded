@@ -16,7 +16,7 @@ plugins {
 }
 
 group = 'me.phantomx.fjetpack.two.reloaded'
-version = '1.6'
+version = '1.7'
 
 repositories {
     mavenCentral()
