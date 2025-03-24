@@ -24,10 +24,10 @@ public class Version {
 
     @Getter(lazy = true)
     private static final int serverVersion = ((Supplier<Integer>) () -> {
-        val pattern = Pattern.compile("\\(MC:\\s*(\\d+\\.\\d+)\\)");
+        val pattern = Pattern.compile("(?<= )([\\d.]+)(?=\\))"); // git-Paper-448 (MC: 1.19.3)
         val matcher = pattern.matcher(Bukkit.getVersion());
         if (matcher.find()) {
-            val version = NumberUtils.toInt(matcher.group(1), Integer.MIN_VALUE);
+            val version = NumberUtils.toInt(matcher.group(1).split("\\.")[1], Integer.MIN_VALUE);
             if (version != Integer.MIN_VALUE) {
                 return version;
             }
