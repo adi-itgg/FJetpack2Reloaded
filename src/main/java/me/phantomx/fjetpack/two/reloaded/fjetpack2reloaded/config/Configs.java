@@ -138,6 +138,8 @@ public class Configs {
                     val customFuel = ConfigsLoader.appendConfigValue(config.getFirst().getConfigurationSection(id), CustomFuel.class);
                     assert customFuel != null;
                     customFuel.setId(id);
+                    customFuel.setDisplayName(Messages.translateColorCodes(customFuel.getDisplayName()));
+                    customFuel.setLore(customFuel.getLore().stream().map(Messages::translateColorCodes).toList());
                     return customFuel;
                 }).onSuccess(customFuel -> {
                     loadedCustomFuels.put(customFuel.getId(), customFuel);
