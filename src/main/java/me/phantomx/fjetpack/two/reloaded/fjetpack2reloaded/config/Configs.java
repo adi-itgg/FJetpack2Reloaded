@@ -8,9 +8,9 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.CustomFue
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Message;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Nothing;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Nothing;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;

@@ -2,11 +2,11 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item;
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;

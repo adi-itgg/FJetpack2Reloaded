@@ -3,7 +3,6 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.annotation.SectionPath;
 import org.bukkit.Material;
 import org.bukkit.permissions.Permission;
 

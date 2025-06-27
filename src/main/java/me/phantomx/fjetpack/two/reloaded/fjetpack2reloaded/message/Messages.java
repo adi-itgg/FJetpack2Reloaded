@@ -3,7 +3,6 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

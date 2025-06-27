@@ -1,6 +1,9 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util;
 
-import lombok.*;
+import lombok.Cleanup;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemMetaData;
