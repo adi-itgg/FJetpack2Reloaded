@@ -33,6 +33,12 @@ public class ItemUtil {
 
             val itemMeta = item.getItemMeta();
             assert itemMeta != null;
+
+            // set custom model data
+            if (customFuel.getCustomModelData() != -1) {
+                itemMeta.setCustomModelData(customFuel.getCustomModelData());
+            }
+
             itemMeta.setDisplayName(customFuel.getDisplayName());
             itemMeta.setLore(customFuel.getLore());
             if (customFuel.isGlowing()) {
