@@ -1,21 +1,24 @@
 package me.phantomx.fjetpack.two.reloaded.v2.item;
 
+import lombok.SneakyThrows;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.StoredKey;
+import me.phantomx.fjetpack.two.reloaded.v2.FJReloaded;
 import me.phantomx.fjetpack.two.reloaded.v2.util.VersionManager;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+import static me.phantomx.fjetpack.two.reloaded.v2.util.Utils.toInt;
+
 public class ItemMeta {
 
-    private final Plugin plugin;
+    private final FJReloaded plugin;
     private final VersionManager versionManager;
 
     private Class<?> classCraftItemStack;
@@ -32,10 +35,12 @@ public class ItemMeta {
     private Method lazyMethodGetTag;
     private Method lazyMethodSetTag;
     private Method lazyMethodAsBukkitCopy;
+    private Method lazyMethodGetItemNMSItem;
 
-    public ItemMeta(Plugin plugin, VersionManager versionManager) throws Throwable {
+    @SneakyThrows
+    public ItemMeta(FJReloaded plugin) {
         this.plugin = plugin;
-        this.versionManager = versionManager;
+        this.versionManager = plugin.versionManager();
 
         // setup for older versions only
         if (versionManager.serverVersion() > 17) {
@@ -59,6 +64,9 @@ public class ItemMeta {
         this.methodGetStringNBTTag = classNBTTagCompound.getMethod("getString", String.class);
     }
 
+    public ItemStack putInt(ItemStack itemStack, @NotNull String key, @Nullable Integer value) throws Throwable {
+        return putString(itemStack, key, value == null ? null : value.toString());
+    }
 
     public ItemStack putString(ItemStack itemStack, @NotNull String key, @Nullable String value) throws Throwable {
         // this new api is only available on 1.14+
@@ -111,6 +119,10 @@ public class ItemMeta {
         return itemStack;
     }
 
+    public Integer getIntegerOrDefault(ItemStack itemStack, @NotNull String key, @NotNull Integer defaultValue) throws Throwable {
+        return toInt(getStringOrDefault(itemStack, key, defaultValue.toString()), defaultValue);
+    }
+
 
     public String getStringOrDefault(ItemStack itemStack, @NotNull String key, @NotNull String defaultValue) throws Throwable {
         // this new api is only available on 1.14+
@@ -137,21 +149,71 @@ public class ItemMeta {
         return result == null ? defaultValue : result;
     }
 
-    // TODO last rewrite here...
     public boolean isNotItemArmor(@NotNull ItemStack item) throws Throwable {
         val nmsItem = methodAsNMSCopy.invoke(classCraftItemStack, item);
-        val itm = nmsItem.getClass().getMethod(versionManager.serverVersion() > 17 ? "c" : "getItem").invoke(nmsItem); // TODO check why method is different like obfuscated
-        var isNotArmor = !itm.getClass().getName().equals(
-                versionManager.serverVersion() > 16
-                        ? "net.minecraft.world.item.ItemArmor"
-                        : String.format("net.minecraft.server.%s.ItemArmor", versionManager.nmsApiVersion())
-        );
-        if (isNotArmor)
+
+        if (lazyMethodGetItemNMSItem == null) {
+            final String methodName;
+            if (versionManager.serverVersion() > 17) {
+                methodName = "c";
+            } else {
+                methodName = "getItem";
+            }
+            lazyMethodGetItemNMSItem = nmsItem.getClass().getMethod(methodName);
+        }
+
+
+        val itm = lazyMethodGetItemNMSItem.invoke(nmsItem);
+        final String className;
+        if (versionManager.serverVersion() > 16) {
+            className = "net.minecraft.world.item.ItemArmor";
+        } else {
+            className = "net.minecraft.server." + versionManager.nmsApiVersion() + ".ItemArmor";
+        }
+
+        var isNotArmor = !itm.getClass().getName().equals(className);
+        if (isNotArmor) {
             isNotArmor = switch (item.getType()) {
                 case LEATHER_HELMET, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_BOOTS -> false;
                 default -> true;
             };
+        }
+
         return isNotArmor;
+    }
+
+    public boolean isItemArmorFast(@NotNull ItemStack item) {
+        final String typeNameString = item.getType().name();
+        return typeNameString.endsWith("_HELMET")
+                || typeNameString.endsWith("_CHESTPLATE")
+                || typeNameString.endsWith("_LEGGINGS")
+                || typeNameString.endsWith("_BOOTS");
+    }
+
+    public @NotNull ItemStack setActiveJetpack(@NotNull ItemStack item, int id) {
+        try {
+            item = putInt(item, StoredKey.JETPACK_RUN_PLUGIN_ID, plugin.uniqueId());
+            item = putInt(item, StoredKey.ACTIVE_JETPACK_ID, id);
+        } catch (Throwable error) {
+            plugin.getLogger().warning("Failed to set active jetpack: " + error.getMessage());
+        }
+        return item;
+    }
+
+    public boolean isActiveJetpack(@NotNull ItemStack item, int id) {
+        try {
+            val isInstanceMatch = getIntegerOrDefault(item, StoredKey.JETPACK_RUN_PLUGIN_ID, -1).equals(plugin.uniqueId());
+            return isInstanceMatch && getIntegerOrDefault(item, StoredKey.ACTIVE_JETPACK_ID, -1).equals(id);
+        } catch (Throwable error) {
+            plugin.getLogger().warning("Failed to check active jetpack: " + error.getMessage());
+        }
+        return false;
+    }
+
+
+    // TODO last rewrite here
+    public @NotNull ItemStack setJetpack(ItemStack itemStack, @Nullable String id) {
+        return putString(itemStack, StoredKey.PLUGIN_ID, id);
     }
 
 }

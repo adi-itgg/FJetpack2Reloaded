@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemMetaData;
+import me.phantomx.fjetpack.two.reloaded.v2.item.ItemMeta;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.inventory.ItemStack;
@@ -58,7 +59,7 @@ public final class VersionManager {
     }
 
 
-    public boolean isServerSupport() {
+    public boolean isServerSupport(ItemMeta itemMeta) {
         logger.info(MessageUtil.translateColorCodes("&6Checking Server Version..."));
         if (serverVersion == 0) {
             logger.warning(MessageUtil.translateColorCodes("&cUnknown Server Version! - " + server.getVersion()));
@@ -66,8 +67,8 @@ public final class VersionManager {
         }
         if (serverVersion > 17) {
             var armor = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
-            armor = ItemMetaData.setJetpack(armor, nmsApiVersion);
-            val storedValue = ItemMetaData.getJetpackID(armor, "");
+            armor = itemMeta.setJetpack(armor, nmsApiVersion);
+            val storedValue = itemMeta.getJetpackID(armor, "");
             if (!storedValue.equals(nmsApiVersion)) {
                 logger.warning(MessageUtil.translateColorCodes("&cUnsupported server api version!"));
                 return false;
