@@ -2,7 +2,6 @@ package me.phantomx.fjetpack.two.reloaded.v2;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.v2.config.ConfigManager;
 import me.phantomx.fjetpack.two.reloaded.v2.hook.HookManager;
 import me.phantomx.fjetpack.two.reloaded.v2.item.ItemMeta;
@@ -35,7 +34,7 @@ public class FJReloaded extends JavaPlugin {
         this.itemMeta = new ItemMeta(this);
 
         // check version
-        if (!versionManager.isServerSupport()) {
+        if (!versionManager.isServerSupport(itemMeta)) {
             setEnabled(false);
             return;
         }
@@ -51,8 +50,6 @@ public class FJReloaded extends JavaPlugin {
         // metrics
         new Metrics(this, metricsId);
     }
-
-
 
 
 }

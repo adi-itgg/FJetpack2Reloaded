@@ -15,6 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -204,4 +205,7 @@ public class ConfigManager {
         return config;
     }
 
+    public void reloadConfig(@NotNull CommandSender sender) {
+        loadAllConfig(sender);
+    }
 }

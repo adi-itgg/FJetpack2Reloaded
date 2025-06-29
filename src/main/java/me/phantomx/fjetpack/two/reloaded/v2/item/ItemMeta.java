@@ -64,11 +64,12 @@ public class ItemMeta {
         this.methodGetStringNBTTag = classNBTTagCompound.getMethod("getString", String.class);
     }
 
-    public ItemStack putInt(ItemStack itemStack, @NotNull String key, @Nullable Integer value) throws Throwable {
+    public ItemStack putInt(ItemStack itemStack, @NotNull String key, @Nullable Integer value) {
         return putString(itemStack, key, value == null ? null : value.toString());
     }
 
-    public ItemStack putString(ItemStack itemStack, @NotNull String key, @Nullable String value) throws Throwable {
+    @SneakyThrows
+    public ItemStack putString(ItemStack itemStack, @NotNull String key, @Nullable String value) {
         // this new api is only available on 1.14+
         if (versionManager.serverVersion() > 17) {
             val itemMeta = itemStack.getItemMeta();
@@ -119,12 +120,13 @@ public class ItemMeta {
         return itemStack;
     }
 
-    public Integer getIntegerOrDefault(ItemStack itemStack, @NotNull String key, @NotNull Integer defaultValue) throws Throwable {
+    public Integer getIntegerOrDefault(ItemStack itemStack, @NotNull String key, @NotNull Integer defaultValue) {
         return toInt(getStringOrDefault(itemStack, key, defaultValue.toString()), defaultValue);
     }
 
 
-    public String getStringOrDefault(ItemStack itemStack, @NotNull String key, @NotNull String defaultValue) throws Throwable {
+    @SneakyThrows
+    public String getStringOrDefault(ItemStack itemStack, @NotNull String key, @NotNull String defaultValue) {
         // this new api is only available on 1.14+
         if (versionManager.serverVersion() > 17) {
             val itemMeta = itemStack.getItemMeta();
@@ -149,7 +151,8 @@ public class ItemMeta {
         return result == null ? defaultValue : result;
     }
 
-    public boolean isNotItemArmor(@NotNull ItemStack item) throws Throwable {
+    @SneakyThrows
+    public boolean isNotItemArmor(@NotNull ItemStack item) {
         val nmsItem = methodAsNMSCopy.invoke(classCraftItemStack, item);
 
         if (lazyMethodGetItemNMSItem == null) {
@@ -211,9 +214,12 @@ public class ItemMeta {
     }
 
 
-    // TODO last rewrite here
     public @NotNull ItemStack setJetpack(ItemStack itemStack, @Nullable String id) {
         return putString(itemStack, StoredKey.PLUGIN_ID, id);
+    }
+
+    public @NotNull String getJetpackID(@NotNull ItemStack itemStack, @NotNull String defaultValue) {
+        return getStringOrDefault(itemStack, StoredKey.PLUGIN_ID, defaultValue);
     }
 
 }

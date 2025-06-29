@@ -20,4 +20,15 @@ public final class Utils {
         }
     }
 
+    public static long toLong(String str, long defaultValue) {
+        if (str == null) {
+            return defaultValue;
+        }
+        try {
+            return Long.parseLong(str);
+        } catch (final NumberFormatException nfe) {
+            return defaultValue;
+        }
+    }
+
 }
