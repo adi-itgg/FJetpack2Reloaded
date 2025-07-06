@@ -222,4 +222,16 @@ public class ItemMeta {
         return getStringOrDefault(itemStack, StoredKey.PLUGIN_ID, defaultValue);
     }
 
+    public @NotNull ItemStack setFuelValue(ItemStack itemStack, @Nullable Long value) {
+        return putString(itemStack, StoredKey.FUEL_VALUE_ID, value != null ? String.valueOf(value) : null);
+    }
+
+    public @Nullable Long getFuelValue(ItemStack itemStack) {
+        val result = getStringOrDefault(itemStack, StoredKey.FUEL_VALUE_ID, "Error");
+        if (result.equals("Error")) {
+            return null;
+        }
+        return Long.parseLong(result);
+    }
+
 }
