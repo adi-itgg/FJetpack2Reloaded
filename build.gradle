@@ -36,6 +36,11 @@ dependencies {
 
     implementation 'org.bstats:bstats-bukkit:3.0.0'
 
+    // API SLF4J
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    // Adaptor agar SLF4J mengirim pesan ke Logger bawaan Java/Bukkit
+    implementation("org.slf4j:slf4j-jdk14:2.0.17")
+
     compileOnly 'com.github.TechFortress:GriefPrevention:16.18'
     compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:1.11.0'
 
@@ -45,11 +50,21 @@ dependencies {
     //noinspection VulnerableLibrariesLocal
     compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
 
+    // 1. Lombok
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
     testCompileOnly 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+
+    // 2. Dependency Injection (Before Lombok)
+    def injectVersion = '12.3'
+    implementation("io.avaje:avaje-inject:${injectVersion}")
+    annotationProcessor("io.avaje:avaje-inject-generator:${injectVersion}")
+
+    testImplementation("io.avaje:avaje-inject-test:${injectVersion}")
+    testAnnotationProcessor("io.avaje:avaje-inject-generator:${injectVersion}")
 }
 
 def targetJavaVersion = 17
