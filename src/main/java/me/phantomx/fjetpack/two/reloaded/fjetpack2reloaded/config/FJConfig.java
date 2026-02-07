@@ -1,8 +1,10 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config;
 
 import jakarta.inject.Singleton;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.experimental.Accessors;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.annotation.SectionPath;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.loader.CompositeConfigParser;
@@ -25,6 +27,7 @@ import java.util.Map;
 
 @SuppressWarnings("unchecked")
 @Singleton
+@Accessors(fluent = true)
 @RequiredArgsConstructor
 public class FJConfig {
 
@@ -35,7 +38,7 @@ public class FJConfig {
 
 
     private Config config;
-    private Message message;
+    private @Getter Message message;
     private final Map<String, CustomFuel> customFuels = new HashMap<>();
     private final Map<String, Jetpack> jetpacks = new HashMap<>();
 

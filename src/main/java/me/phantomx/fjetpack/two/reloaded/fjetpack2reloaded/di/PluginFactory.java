@@ -8,7 +8,6 @@ import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpackImpl;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginLogger;
@@ -25,7 +24,7 @@ public class PluginFactory {
 
     @RequiredArgsConstructor
     public static class Initiator {
-        private final @Getter FJetpackImpl plugin;
+        private final @Getter FJetpack plugin;
         private final Supplier<BeanScope> beanSupplier;
     }
 
@@ -55,7 +54,7 @@ public class PluginFactory {
     }
 
     @Bean
-    FJetpackImpl providePlugin() {
+    FJetpack providePlugin() {
         return initiator.getPlugin();
     }
 
