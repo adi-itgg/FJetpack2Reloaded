@@ -1,8 +1,10 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.loader;
 
+import io.avaje.inject.Prototype;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.permissions.Permission;
 
+@Prototype
 public class ConfigPermissionParser implements ConfigParser<String, Permission> {
 
     @Override

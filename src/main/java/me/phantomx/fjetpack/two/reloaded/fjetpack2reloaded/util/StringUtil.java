@@ -30,4 +30,7 @@ public final class StringUtil {
         return message;
     }
 
+    public static String toKebabCase(String camel) {
+        return camel.replaceAll("([a-z0-9])([A-Z])", "$1-$2").toLowerCase();
+    }
 }

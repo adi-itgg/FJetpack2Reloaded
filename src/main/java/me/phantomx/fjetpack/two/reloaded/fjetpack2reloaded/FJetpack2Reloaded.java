@@ -26,6 +26,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
+@Deprecated
 public class FJetpack2Reloaded extends JavaPlugin {
 
     private static final int metricsId = 17668;

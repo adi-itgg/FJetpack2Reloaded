@@ -9,6 +9,8 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.PluginMetrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 
+import java.util.List;
+
 @Component.Import(value = PluginMetrics.class)
 public class FJetpackImpl extends JavaPlugin implements FJetpack {
 
@@ -18,7 +20,7 @@ public class FJetpackImpl extends JavaPlugin implements FJetpack {
     @Override
     public void onEnable() {
         this.beanScope = BeanScope.builder()
-                .bean(PluginFactory.Provider.class, new PluginFactory.Provider(this))
+                .bean(PluginFactory.Initiator.class, new PluginFactory.Initiator(this, () -> this.beanScope))
                 .build();
 
         // get logger
@@ -43,4 +45,8 @@ public class FJetpackImpl extends JavaPlugin implements FJetpack {
         }
     }
 
+    @Override
+    public <T> List<T> getAll(Class<T> type) {
+        return beanScope.list(type);
+    }
 }

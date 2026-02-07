@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.loader;
 
+import io.avaje.inject.Prototype;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.StringUtil;
 import org.bukkit.configuration.ConfigurationSection;
@@ -7,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
+@Prototype
 public class ConfigListParser implements ConfigParser<List, List> {
 
     @Override
