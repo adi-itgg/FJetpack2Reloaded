@@ -37,10 +37,10 @@ public class FJConfig {
     private final Logger log;
 
 
-    private Config config;
+    private @Getter Config config;
     private @Getter Message message;
-    private final Map<String, CustomFuel> customFuels = new HashMap<>();
-    private final Map<String, Jetpack> jetpacks = new HashMap<>();
+    private final @Getter Map<String, CustomFuel> customFuels = new HashMap<>();
+    private final @Getter Map<String, Jetpack> jetpacks = new HashMap<>();
 
     private void loadConfig(String filename) {
         val file = new File(plugin.getDataFolder(), filename);
