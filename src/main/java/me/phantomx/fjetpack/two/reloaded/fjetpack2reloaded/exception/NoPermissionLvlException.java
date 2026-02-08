@@ -2,6 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception;
 
 import lombok.SneakyThrows;
 
+@Deprecated
 public class NoPermissionLvlException extends Throwable {
 
     private static NoPermissionLvlException instance;

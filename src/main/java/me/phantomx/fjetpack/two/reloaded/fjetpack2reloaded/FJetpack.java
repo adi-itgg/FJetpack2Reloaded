@@ -17,7 +17,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class FJetpack extends JavaPlugin {
     private BeanScope beanScope;
 
     private Logger log;
-    private FJConfig config;
+    private CommandTabCompleterPlugin commandTabCompleterPlugin;
 
     @Override
     public void onEnable() {
@@ -50,7 +51,7 @@ public class FJetpack extends JavaPlugin {
         }
         log.info("&6Detected Server: &a{} v{}", getServer().getName(), version.getServerVersion());
 
-        this.config = beanScope.get(FJConfig.class);
+        this.commandTabCompleterPlugin = beanScope.get(CommandTabCompleterPlugin.class);
     }
 
     @Override
@@ -60,30 +61,14 @@ public class FJetpack extends JavaPlugin {
         }
     }
 
-
-    // NEED TO REWRITE
-    /*@Nullable
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        return CommandTabCompleter.onTab(sender, command, alias, args);
+    public @Nullable List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, @NonNull String[] args) {
+        return this.commandTabCompleterPlugin.onTabComplete(sender, command, alias, args);
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        try {
-            return FJ2RCommandExecutor.onCommand(sender, command, label, args);
-        } catch (Throwable e) {
-            if (e instanceof NoPermissionLvlException) {
-                Messages.sendMessage(sender, config.message().getNoPermission());
-                return false;
-            }
-            if (e instanceof NumberFormatException) {
-                Messages.sendMessage(sender, config.message().getInvalidNumber());
-                return false;
-            }
-            log.error("Command error!", e);
-        }
-        return false;
-    }*/
+    public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, @NonNull String[] args) {
+        return this.commandTabCompleterPlugin.onCommand(sender, command, label, args);
+    }
 
 }

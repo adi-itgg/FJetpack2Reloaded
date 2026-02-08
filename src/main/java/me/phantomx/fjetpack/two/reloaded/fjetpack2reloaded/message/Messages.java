@@ -41,6 +41,8 @@ public class Messages {
     public static void sendMessage(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
         sendMessage(true, target, message, args);
     }
+
+    // TODO need to improve
     public static void sendMessage(boolean withPrefix, @NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
         if (message.isEmpty()) return;
         val prefix = Catcher.create(() -> Configs.getMessage().getPrefix()).getOrDefault(DEFAULT_PREFIX) + " ";

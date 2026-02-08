@@ -14,7 +14,10 @@ public enum FJ2RCommand {
     GIVE_FUEL,
     CHECK_UPDATE;
 
-    public static final List<String> COMMANDS = Arrays.stream(values()).map(cmd -> cmd.name().replace("_", "").toLowerCase()).toList();
+    public static final FJ2RCommand[] VALUES = values();
+    public static final List<String> COMMANDS = Arrays.stream(VALUES)
+            .map(cmd -> cmd.name().replace("_", "").toLowerCase())
+            .toList();
 
     public String cmd() {
         return this.name().replace("_", "").toLowerCase();
@@ -22,5 +25,12 @@ public enum FJ2RCommand {
 
     public boolean isEqual(String cmd) {
         return this.cmd().equalsIgnoreCase(cmd);
+    }
+
+    public static FJ2RCommand parse(String cmd) {
+        return Arrays.stream(values())
+                .filter(c -> c.isEqual(cmd))
+                .findFirst()
+                .orElse(null);
     }
 }

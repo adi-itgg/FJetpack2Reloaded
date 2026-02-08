@@ -12,7 +12,9 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Config;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.CustomFuel;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Message;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.StringUtil;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -107,16 +109,18 @@ public class FJConfig {
     }
 
 
-    public void reloadConfig() {
+    public void reloadConfig(CommandSender sender) {
         // load config
         loadConfig("config.yml");
         this.config = load(Config.class);
         log.info("Loaded config version {}", this.config.getVersion());
+        Messages.sendMessage(false, sender, "&6Loaded config version &a{}", this.config.getVersion());
 
         // load message
         loadConfig("message.yml");
         this.message = load(Message.class);
         log.info("Loaded message config");
+        Messages.sendMessage(false, sender, "&6Loaded message config");
 
         // load custom fuels
         loadConfig("custom_fuel.yml");
@@ -131,6 +135,7 @@ public class FJConfig {
             }
         }
         log.info("Loaded {} custom fuels", this.customFuels.size());
+        Messages.sendMessage(false, sender, "&6Loaded {} custom fuels", this.customFuels.size());
 
         // load jetpacks
         loadConfig("jetpack.yml");
@@ -145,7 +150,7 @@ public class FJConfig {
             }
         }
         log.info("Loaded {} jetpacks", this.jetpacks.size());
-
+        Messages.sendMessage(false, sender, "&6Loaded {} jetpacks", this.jetpacks.size());
 
     }
 
