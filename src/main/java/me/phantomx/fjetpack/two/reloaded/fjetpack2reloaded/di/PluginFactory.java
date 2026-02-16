@@ -4,12 +4,17 @@ import io.avaje.inject.Bean;
 import io.avaje.inject.BeanScope;
 import io.avaje.inject.External;
 import io.avaje.inject.Factory;
+import io.vavr.control.Try;
 import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemDataProvider;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.NBTAPIProvider;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.PDCProvider;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,4 +94,14 @@ public class PluginFactory {
     YamlConfiguration provideYamlConfiguration() {
         return new YamlConfiguration();
     }
+
+    @Bean
+    public ItemDataProvider itemDataProvider(Plugin plugin) {
+        boolean isNewVersion = Try.of(() -> Class.forName("org.bukkit.persistence.PersistentDataContainer")).isSuccess();
+        if (isNewVersion) {
+            return new PDCProvider(plugin);
+        }
+        return new NBTAPIProvider();
+    }
+
 }

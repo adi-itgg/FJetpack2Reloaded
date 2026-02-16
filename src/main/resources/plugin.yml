@@ -4,7 +4,7 @@ main: me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded
 api-version: 1.13
 prefix: FJetpack2Reloaded
 loadbefore: [ SuperiorSkyblock2 ]
-softdepend: [ GriefPrevention ]
+softdepend: [ GriefPrevention, NBTAPI ]
 authors: [ PhantomXCraft ]
 description: Jetpack Plugin - Lightweight - Fuel System - Multi Jetpack with customizable configuration
 website: https://www.spigotmc.org/resources/fjetpackreloaded.100816/

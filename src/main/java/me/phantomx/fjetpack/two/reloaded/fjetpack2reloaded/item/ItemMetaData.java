@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Deprecated
 public class ItemMetaData {
 
     public static void setParticle(@NotNull ItemStack itemStack, String particleName) {

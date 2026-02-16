@@ -30,6 +30,10 @@ repositories {
     }
     maven { url 'https://jitpack.io' }
     maven { url 'https://repo.bg-software.com/repository/api/' }
+    maven {
+        name = "CodeMC"
+        url = uri("https://repo.codemc.io/repository/maven-public/")
+    }
 }
 
 dependencies {
@@ -38,8 +42,14 @@ dependencies {
 
     // API SLF4J
     implementation("org.slf4j:slf4j-api:2.0.17")
-    // Adaptor agar SLF4J mengirim pesan ke Logger bawaan Java/Bukkit
+    // Adaptor SLF4J Logger for Java/Bukkit
     implementation("org.slf4j:slf4j-jdk14:2.0.17")
+
+    // Vavr Functional Library
+    implementation 'io.vavr:vavr:1.0.0'
+
+    // Item NBT API
+    compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.5")
 
     compileOnly 'com.github.TechFortress:GriefPrevention:16.18'
     compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:1.11.0'

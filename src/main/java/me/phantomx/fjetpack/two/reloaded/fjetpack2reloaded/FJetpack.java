@@ -10,6 +10,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.PluginFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemDataProvider;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.FJVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.PluginMetrics;
@@ -50,6 +51,16 @@ public class FJetpack extends JavaPlugin {
             return;
         }
         log.info("&6Detected Server: &a{} v{}", getServer().getName(), version.getServerVersion());
+
+
+        log.info("&6Checking Item Data Provider...");
+        val itemDataProvider = beanScope.get(ItemDataProvider.class);
+        if (!itemDataProvider.isSupported()) {
+            log.info("&cItem Data Provider is not supported!. Please install &6NBTAPI &cplugin!");
+            setEnabled(false);
+            return;
+        }
+        log.info("&6Item Data Provider: &a{}", itemDataProvider.getClass().getSimpleName());
 
         this.commandTabCompleterPlugin = beanScope.get(CommandTabCompleterPlugin.class);
     }
