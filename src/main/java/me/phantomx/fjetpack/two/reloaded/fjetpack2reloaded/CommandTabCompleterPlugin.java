@@ -157,7 +157,7 @@ public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
                 val item = version.getServerVersion() > 8 ? player.getInventory().getItemInMainHand() : player.getItemInHand();
 
                 if (item.getItemMeta() == null || item.getType() == Material.AIR) {
-                    Messages.sendMessage(Configs.getMessage().getNoItemInMainHand());
+                    Messages.sendMessage(config.message().getNoItemInMainHand());
                     return true;
                 }
 
