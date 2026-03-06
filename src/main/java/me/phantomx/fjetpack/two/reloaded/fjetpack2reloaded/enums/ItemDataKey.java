@@ -12,7 +12,10 @@ public enum ItemDataKey {
     CUSTOM_FUEL_ID("FJ2RCF"),
     PARTICLE_ID("FJ2RParticle"),
     ACTIVE_JETPACK_ID("FJ2RActive"),
-    JETPACK_RUN_PLUGIN_ID("FJ2RRunPlugin");
+    JETPACK_RUN_PLUGIN_ID("FJ2RRunPlugin"),
+
+    ENCHANTMENT("ench")
+    ;
 
     private final String key;
 

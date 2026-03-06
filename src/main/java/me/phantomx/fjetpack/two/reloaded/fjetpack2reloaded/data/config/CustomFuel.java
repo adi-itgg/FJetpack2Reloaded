@@ -19,7 +19,7 @@ public class CustomFuel {
     private @NonNull Material item;
     private @NonNull Permission permission;
     private boolean glowing;
-    private int customModelData;
+    private Integer customModelData;
 
     @Override
     public String toString() {

@@ -2,6 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception;
 
 import org.jetbrains.annotations.NotNull;
 
+@Deprecated
 public class MessageLvlException extends Throwable {
 
     public MessageLvlException(@NotNull String message, Object @NotNull ... args) {

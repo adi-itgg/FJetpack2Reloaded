@@ -3,6 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception;
 
 import lombok.SneakyThrows;
 
+@Deprecated
 public class IMessageException extends Throwable {
 
     private static IMessageException instance;

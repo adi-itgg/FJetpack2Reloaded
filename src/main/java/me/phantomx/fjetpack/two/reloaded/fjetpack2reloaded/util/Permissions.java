@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util;
 
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -21,6 +22,10 @@ public class Permissions {
 
     public static boolean isAdminOrOp(@NotNull CommandSender sender) {
         return sender.hasPermission(PERMISSION_PREFIX + "*") || sender.isOp();
+    }
+
+    public static boolean hasPermission(@NotNull CommandSender sender, FJ2RCommand cmd) {
+        return hasPermission(sender, cmd.cmd());
     }
 
     public static boolean hasPermission(@NotNull CommandSender sender, String perm) {

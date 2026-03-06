@@ -3,6 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 import io.avaje.inject.PostConstruct;
 import io.avaje.inject.Prototype;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
@@ -10,9 +11,9 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.AccessDeniedLevelException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.CommandExtensionPlugin;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.FJVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.PlayerUtil;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -31,19 +32,11 @@ import java.util.Collections;
 import java.util.List;
 
 @Prototype
-@RequiredArgsConstructor
-public abstract class CommandTabCompleterPlugin {
+@SuperBuilder
+public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
 
     private final List<String> amounts = List.of("32", "64", "96", "128", "256");
-
-    private final FJConfig config;
-    private final Server server;
-    private final JavaPlugin plugin;
-    private final Logger log;
-    private final FJVersion version;
-
     private List<String> helpText;
-
 
     @SuppressWarnings("DataFlowIssue")
     @PostConstruct
@@ -57,88 +50,73 @@ public abstract class CommandTabCompleterPlugin {
         }
     }
 
-
-    private List<String> copyPartialMatches(String token, Iterable<String> suggest) {
-        return StringUtil.copyPartialMatches(token, suggest, new ArrayList<>());
-    }
-
-    private List<String> getOnlinePlayers() {
-        val onlinePlayers = new ArrayList<String>();
-        for (Player player : server.getOnlinePlayers()) {
-            onlinePlayers.add(player.getName());
-            onlinePlayers.add(player.getDisplayName());
-        }
-        return onlinePlayers.stream().distinct().toList();
-    }
-
-
     public @Nullable List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String alias, @NonNull String[] args) {
         if (args.length == 1) {
             return copyPartialMatches(args[0], FJ2RCommand.COMMANDS.stream().filter(cmd -> Permissions.hasPermission(sender, cmd)).toList());
         }
 
-        if (!Permissions.hasPermission(sender, args[0])) {
+        val cmd = FJ2RCommand.parse(args[0]);
+
+        // unknown command
+        if (cmd == null || !Permissions.hasPermission(sender, cmd)) {
             return Collections.emptyList();
         }
 
-        // cmd set completions
-        if (FJ2RCommand.SET.isEqual(args[0])) {
-            if (args.length == 2) {
-                return copyPartialMatches(args[1], config.jetpacks().keySet());
-            }
-            if (args.length == 3) {
-                return copyPartialMatches(args[2], amounts);
-            }
-        }
-
-        // cmd set fuel completions
-        if (FJ2RCommand.SET_FUEL.isEqual(args[0]) && args.length == 2) {
-            return copyPartialMatches(args[1], amounts);
-        }
-
-        // cmd get/give jetpack completions
-        if (FJ2RCommand.GET.isEqual(args[0]) || FJ2RCommand.GIVE.isEqual(args[0])) {
-            if (args.length == 2) {
-                val suggests = new ArrayList<String>();
-                if (sender instanceof Player) {
-                    suggests.addAll(config.jetpacks().keySet());
+        switch (cmd) {
+            case SET -> { // cmd set completions
+                if (args.length == 2) {
+                    return copyPartialMatches(args[1], config.jetpacks().keySet());
                 }
-                suggests.addAll(getOnlinePlayers());
-                return copyPartialMatches(args[1], suggests);
-            }
-            if (args.length == 3) {
-                if (config.jetpacks().containsKey(args[1])) {
+                if (args.length == 3) {
                     return copyPartialMatches(args[2], amounts);
-                } else {
-                    return copyPartialMatches(args[2], config.jetpacks().keySet());
                 }
             }
-            if (args.length == 4 && config.jetpacks().containsKey(args[2])) {
-                return copyPartialMatches(args[3], amounts);
+            case SET_FUEL -> { // cmd set fuel completions
+                if (args.length == 2) {
+                    return copyPartialMatches(args[1], amounts);
+                }
+            }
+            case GET, GIVE -> { // cmd get/give jetpack completions
+                if (args.length == 2) {
+                    val suggests = new ArrayList<String>();
+                    if (sender instanceof Player) {
+                        suggests.addAll(config.jetpacks().keySet());
+                    }
+                    suggests.addAll(getOnlinePlayers());
+                    return copyPartialMatches(args[1], suggests);
+                }
+                if (args.length == 3) {
+                    if (config.jetpacks().containsKey(args[1])) {
+                        return copyPartialMatches(args[2], amounts);
+                    } else {
+                        return copyPartialMatches(args[2], config.jetpacks().keySet());
+                    }
+                }
+                if (args.length == 4 && config.jetpacks().containsKey(args[2])) {
+                    return copyPartialMatches(args[3], amounts);
+                }
+            }
+            case GET_FUEL, GIVE_FUEL -> {
+                if (args.length == 2) {
+                    val suggests = new ArrayList<String>();
+                    if (sender instanceof Player) {
+                        suggests.addAll(config.customFuels().keySet());
+                    }
+                    suggests.addAll(getOnlinePlayers());
+                    return copyPartialMatches(args[1], suggests);
+                }
+                if (args.length == 3) {
+                    if (config.customFuels().containsKey(args[1])) {
+                        return copyPartialMatches(args[2], amounts);
+                    } else {
+                        return copyPartialMatches(args[2], config.customFuels().keySet());
+                    }
+                }
+                if (args.length == 4 && config.customFuels().containsKey(args[2])) {
+                    return copyPartialMatches(args[3], amounts);
+                }
             }
         }
-
-        if (FJ2RCommand.GET_FUEL.isEqual(args[0]) || FJ2RCommand.GIVE_FUEL.isEqual(args[0])) {
-            if (args.length == 2) {
-                val suggests = new ArrayList<String>();
-                if (sender instanceof Player) {
-                    suggests.addAll(config.customFuels().keySet());
-                }
-                suggests.addAll(getOnlinePlayers());
-                return copyPartialMatches(args[1], suggests);
-            }
-            if (args.length == 3) {
-                if (config.customFuels().containsKey(args[1])) {
-                    return copyPartialMatches(args[2], amounts);
-                } else {
-                    return copyPartialMatches(args[2], config.customFuels().keySet());
-                }
-            }
-            if (args.length == 4 && config.customFuels().containsKey(args[2])) {
-                return copyPartialMatches(args[3], amounts);
-            }
-        }
-
 
         return Collections.emptyList();
     }
@@ -158,7 +136,7 @@ public abstract class CommandTabCompleterPlugin {
             return true;
         }
 
-        if (!Permissions.hasPermission(sender, cmd.cmd())) {
+        if (!Permissions.hasPermission(sender, cmd)) {
             throw new AccessDeniedLevelException(cmd.cmd());
         }
 
