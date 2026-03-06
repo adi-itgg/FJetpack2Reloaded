@@ -3,13 +3,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 import io.avaje.inject.BeanScope;
 import io.avaje.inject.Component;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.CommandTabCompleter;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.FJ2RCommandExecutor;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.PluginFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.InfoLevelException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemDataProvider;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.FJVersion;
@@ -17,7 +12,6 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.PluginMetrics;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -79,7 +73,12 @@ public class FJetpack extends JavaPlugin {
 
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, @NonNull String[] args) {
-        return this.commandTabCompleterPlugin.onCommand(sender, command, label, args);
+        try {
+            return this.commandTabCompleterPlugin.onCommand(sender, command, label, args);
+        } catch (InfoLevelException e) {
+            Messages.sendMessage(sender, e.getMessage());
+            return false;
+        }
     }
 
 }
