@@ -57,13 +57,17 @@ public class FJetpack extends JavaPlugin {
         log.info("&6Item Data Provider: &a{}", itemDataProvider.getClass().getSimpleName());
 
         this.commandTabCompleterPlugin = beanScope.get(CommandTabCompleterPlugin.class);
+
+        log.info("&6Plugin Enabled!");
     }
 
     @Override
     public void onDisable() {
+        log.info("&6Disabling plugin!");
         if (this.beanScope != null) {
             this.beanScope.close();
         }
+        log.info("&6Plugin Disabled!");
     }
 
     @Override
