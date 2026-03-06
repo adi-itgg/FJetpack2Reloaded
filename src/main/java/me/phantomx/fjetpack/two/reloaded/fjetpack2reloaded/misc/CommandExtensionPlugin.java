@@ -1,12 +1,18 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc;
 
+import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.ItemDataKey;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.InfoLevelException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemDataProvider;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -93,18 +99,55 @@ public abstract class CommandExtensionPlugin {
             throw new IllegalCallerException("&cInvalid item meta");
         }
         itemMeta.setDisplayName(jetpack.getDisplayName());
-        itemMeta.setLore(jetpack.getLore());
+        itemMeta.setLore(jetpack.getLore().stream().map(v -> v.replace(Placeholder.FUEL, getDisplayFuel(jetpack).replace(Placeholder.FUEL_VALUE, String.valueOf(fuelValue)))).toList());
         itemMeta.setCustomModelData(jetpack.getCustomModelData());
 
         if (itemMeta instanceof LeatherArmorMeta && jetpack.getItemColor() != null) {
             val color = jetpack.getItemColor();
             ((LeatherArmorMeta) itemMeta).setColor(Color.fromRGB(color.getR(), color.getG(), color.getB()));
         }
+
+        for (String flag : jetpack.getFlags()) {
+            Try.run(() -> itemMeta.addItemFlags(ItemFlag.valueOf(flag.toUpperCase().trim())))
+                    .onFailure(err -> Messages.sendMessage(sender, "&cInvalid flag %s", flag));
+        }
+
+        if (version.getServerVersion() > 16) {
+            itemMeta.setUnbreakable(jetpack.isUnbreakable());
+        }
+
+        if (jetpack.getCustomModelData() != -1) {
+            itemMeta.setCustomModelData(jetpack.getCustomModelData());
+        }
+
+        for (String enchantment : jetpack.getEnchantments()) {
+            Try.run(() -> {
+                val sp = enchantment.split(":");
+                val enchantName = sp[0];
+                val enchantLvl = Integer.parseInt(sp[1]);
+                @SuppressWarnings("deprecation")
+                val enchantmentObj = version.getServerVersion() > 16 ?
+                        Enchantment.getByKey(NamespacedKey.minecraft(enchantName.toLowerCase())) :
+                        Enchantment.getByName(enchantName.toUpperCase());
+                assert enchantmentObj != null;
+                itemMeta.addEnchant(enchantmentObj, enchantLvl, true);
+            }).onFailure(err -> Messages.sendMessage(sender, "&cInvalid enchantment %s", enchantment));
+        }
+
         item.setItemMeta(itemMeta);
-
-        // TODO implement more code from ItemUtil.setItemAsJetpack
-
         return item;
+    }
+
+    private String getDisplayFuel(Jetpack jetpack) {
+        val customFuel = jetpack.getFuel().getCustomFuel();
+        var fuelDisplay = jetpack.getFuel().getItem().name().replace("_", " ");
+        if (customFuel != null) {
+            fuelDisplay = customFuel.getCustomDisplay().isEmpty() ? customFuel.getDisplayName() : customFuel.getCustomDisplay();
+        }
+        if (customFuel == null) {
+            fuelDisplay = StringUtils.capitalize(fuelDisplay.toLowerCase());
+        }
+        return fuelDisplay;
     }
 
 }

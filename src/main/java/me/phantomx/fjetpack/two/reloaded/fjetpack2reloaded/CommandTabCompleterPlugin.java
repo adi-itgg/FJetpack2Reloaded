@@ -153,9 +153,21 @@ public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
                     return true;
                 }
 
-                // TODO set item as jetpack
+                val jetpackItem = createJetpackItem(sender, args[1], args.length == 3 ? Long.parseLong(args[2]) : 0);
+                if (version.getServerVersion() > 11) {
+                    player.getInventory().setItemInMainHand(jetpackItem);
+                } else {
+                    player.setItemInHand(jetpackItem);
+                }
 
+                Messages.sendMessage(sender, config.message().getCmdSet()
+                        .replace(Placeholder.JETPACK, args[1])
+                        .replace(Placeholder.FUEL_VALUE, String.valueOf(args.length == 3 ? args[2] : 0))
+                );
                 return true;
+            }
+            case GET, GIVE -> {
+                // TODO implement
             }
             default -> throw new IllegalStateException("Unexpected value: " + cmd);
         }
