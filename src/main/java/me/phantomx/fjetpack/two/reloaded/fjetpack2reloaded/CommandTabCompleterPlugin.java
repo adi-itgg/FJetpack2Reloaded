@@ -2,28 +2,20 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 
 import io.avaje.inject.PostConstruct;
 import io.avaje.inject.Prototype;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.AccessDeniedLevelException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.CommandExtensionPlugin;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.FJVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import org.bukkit.Material;
-import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.StringUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
