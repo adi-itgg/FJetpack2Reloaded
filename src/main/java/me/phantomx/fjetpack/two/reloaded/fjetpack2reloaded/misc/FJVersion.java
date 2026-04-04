@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc;
 
+import io.avaje.inject.Component;
 import io.avaje.inject.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+@Component
 @RequiredArgsConstructor
 public class FJVersion implements Runnable {
 
@@ -26,7 +28,7 @@ public class FJVersion implements Runnable {
     private @Getter int serverVersion;
 
     @PostConstruct
-    private void init() {
+    void init() {
         this.serverVersion = serverVersion();
     }
 

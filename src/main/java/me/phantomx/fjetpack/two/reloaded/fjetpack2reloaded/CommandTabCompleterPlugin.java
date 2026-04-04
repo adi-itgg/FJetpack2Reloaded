@@ -2,20 +2,26 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 
 import io.avaje.inject.PostConstruct;
 import io.avaje.inject.Prototype;
-import lombok.experimental.SuperBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.AccessDeniedLevelException;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.JetpackItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.CommandExtensionPlugin;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.misc.FJVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.StringUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,10 +30,17 @@ import java.util.Collections;
 import java.util.List;
 
 @Prototype
-@SuperBuilder
-public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
+@RequiredArgsConstructor
+public class CommandTabCompleterPlugin {
 
     private final List<String> amounts = List.of("32", "64", "96", "128", "256");
+
+    private final Logger log;
+    private final JavaPlugin plugin;
+    private final FJConfig config;
+    private final FJVersion version;
+    private final JetpackItemFactory jetpackItemFactory;
+
     private List<String> helpText;
 
     @SuppressWarnings("DataFlowIssue")
@@ -74,7 +87,7 @@ public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
                     if (sender instanceof Player) {
                         suggests.addAll(config.jetpacks().keySet());
                     }
-                    suggests.addAll(getOnlinePlayers());
+                    suggests.addAll(getOnlinePlayers(plugin.getServer()));
                     return copyPartialMatches(args[1], suggests);
                 }
                 if (args.length == 3) {
@@ -94,7 +107,7 @@ public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
                     if (sender instanceof Player) {
                         suggests.addAll(config.customFuels().keySet());
                     }
-                    suggests.addAll(getOnlinePlayers());
+                    suggests.addAll(getOnlinePlayers(plugin.getServer()));
                     return copyPartialMatches(args[1], suggests);
                 }
                 if (args.length == 3) {
@@ -153,7 +166,7 @@ public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
                     return true;
                 }
 
-                val jetpackItem = createJetpackItem(sender, args[1], args.length == 3 ? Long.parseLong(args[2]) : 0);
+                val jetpackItem = jetpackItemFactory.createJetpackItem(sender, args[1], args.length == 3 ? Long.parseLong(args[2]) : 0);
                 if (version.getServerVersion() > 11) {
                     player.getInventory().setItemInMainHand(jetpackItem);
                 } else {
@@ -174,5 +187,17 @@ public class CommandTabCompleterPlugin extends CommandExtensionPlugin {
 
 
         return true;
+    }
+
+
+    private List<String> copyPartialMatches(String token, Iterable<String> suggest) {
+        return StringUtil.copyPartialMatches(token, suggest, new ArrayList<>());
+    }
+
+    private List<String> getOnlinePlayers(Server server) {
+        return server.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .distinct()
+                .toList();
     }
 }
