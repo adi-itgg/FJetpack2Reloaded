@@ -40,7 +40,9 @@ public class JetpackItemFactory {
 
         val item = new ItemStack(customFuel.getItem());
         val itemMeta = item.getItemMeta();
-        if (itemMeta == null) throw new IllegalStateException("Invalid item meta");
+        if (itemMeta == null) {
+            throw new IllegalStateException("Invalid item meta");
+        }
 
         itemMeta.setDisplayName(customFuel.getDisplayName());
         itemMeta.setLore(customFuel.getLore());
@@ -68,12 +70,17 @@ public class JetpackItemFactory {
 
         val item = new ItemStack(jetpack.getItem());
         val itemMeta = item.getItemMeta();
-        if (itemMeta == null) throw new IllegalStateException("Invalid item meta");
+        if (itemMeta == null) {
+            throw new IllegalStateException("Invalid item meta");
+        }
+
+        var lore = jetpack.getLore().stream().map(v -> {
+            return v.replace(Placeholder.FUEL, getDisplayFuel(jetpack)
+                    .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelValue)));
+        }).toList();
 
         itemMeta.setDisplayName(jetpack.getDisplayName());
-        itemMeta.setLore(jetpack.getLore().stream()
-                .map(v -> v.replace(Placeholder.FUEL, getDisplayFuel(jetpack)
-                        .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelValue)))).toList());
+        itemMeta.setLore(lore);
 
         if (itemMeta instanceof LeatherArmorMeta && jetpack.getItemColor() != null) {
             val color = jetpack.getItemColor();
@@ -99,7 +106,9 @@ public class JetpackItemFactory {
                 val enchantmentObj = version.getServerVersion() > 16 ?
                         Enchantment.getByKey(NamespacedKey.minecraft(enchantName.toLowerCase())) :
                         Enchantment.getByName(enchantName.toUpperCase());
-                if (enchantmentObj != null) itemMeta.addEnchant(enchantmentObj, enchantLvl, true);
+                if (enchantmentObj != null) {
+                    itemMeta.addEnchant(enchantmentObj, enchantLvl, true);
+                }
             }).onFailure(err -> Messages.sendMessage(sender, "&cInvalid enchantment %s", enchantment));
         }
 
