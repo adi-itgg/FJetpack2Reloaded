@@ -23,12 +23,7 @@ public class CompositeFJCommandTabCompleter implements FJCommandTabCompleter {
 
     @Override
     public boolean isSupported(FJ2RCommand cmd) {
-        for (FJCommandTabCompleter completer : completers) {
-            if (completer.isSupported(cmd)) {
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
     @Override
