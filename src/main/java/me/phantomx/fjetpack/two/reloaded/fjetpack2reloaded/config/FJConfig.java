@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config;
 
+import io.avaje.inject.PostConstruct;
 import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.CustomFue
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Message;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.StringUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,10 +23,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
@@ -43,6 +48,20 @@ public class FJConfig {
     private @Getter Message message;
     private final @Getter Map<String, CustomFuel> customFuels = new HashMap<>();
     private final @Getter Map<String, Jetpack> jetpacks = new HashMap<>();
+    private @Getter List<String> helpText;
+
+    @SuppressWarnings("DataFlowIssue")
+    @PostConstruct
+    void init() {
+        try (val br = new BufferedReader(new InputStreamReader(plugin.getResource("help.txt")))) {
+            this.helpText = br.lines()
+                    .map(s -> s.replace(Placeholder.VERSION, plugin.getDescription().getVersion()))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Failed to load help.txt", e);
+        }
+    }
+
 
     private void loadConfig(String filename) {
         val file = new File(plugin.getDataFolder(), filename);
