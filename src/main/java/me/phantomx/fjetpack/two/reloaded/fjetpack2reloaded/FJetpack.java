@@ -124,6 +124,9 @@ public class FJetpack extends JavaPlugin {
         } catch (InfoLevelException e) {
             Messages.sendMessage(sender, e.getMessage());
             return false;
+        } catch (AccessDeniedLevelException e) {
+            Messages.sendMessage(sender, config.message().getNoPermission());
+            return false;
         }
     }
 
