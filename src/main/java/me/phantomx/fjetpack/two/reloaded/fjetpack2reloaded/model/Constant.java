@@ -4,6 +4,6 @@ import java.util.List;
 
 public final class Constant {
 
-    public static final List<String> AMOUNTS = List.of("32", "64", "96", "128", "256");
+    public static final List<String> COMPLETER_AMOUNTS = List.of("32", "64", "96", "128", "256");
 
 }

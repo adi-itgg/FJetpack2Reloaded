@@ -20,7 +20,7 @@ public class SetFuelFJCommandTabCompleter implements FJCommandTabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, FJ2RCommand cmd, String[] args) {
         if (args.length == 2) {
-            return copyPartialMatches(args[1], Constant.AMOUNTS);
+            return copyPartialMatches(args[1], Constant.COMPLETER_AMOUNTS);
         }
         return null;
     }

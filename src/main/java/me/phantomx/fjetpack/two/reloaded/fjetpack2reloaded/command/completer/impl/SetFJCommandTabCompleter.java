@@ -28,7 +28,7 @@ public class SetFJCommandTabCompleter implements FJCommandTabCompleter {
             return copyPartialMatches(args[1], config.jetpacks().keySet());
         }
         if (args.length == 3) {
-            return copyPartialMatches(args[2], Constant.AMOUNTS);
+            return copyPartialMatches(args[2], Constant.COMPLETER_AMOUNTS);
         }
         return null;
     }

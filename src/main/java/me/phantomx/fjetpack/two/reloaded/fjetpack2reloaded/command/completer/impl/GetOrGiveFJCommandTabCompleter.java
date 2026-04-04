@@ -38,13 +38,13 @@ public class GetOrGiveFJCommandTabCompleter implements FJCommandTabCompleter {
         }
         if (args.length == 3) {
             if (config.jetpacks().containsKey(args[1])) {
-                return copyPartialMatches(args[2], Constant.AMOUNTS);
+                return copyPartialMatches(args[2], Constant.COMPLETER_AMOUNTS);
             } else {
                 return copyPartialMatches(args[2], config.jetpacks().keySet());
             }
         }
         if (args.length == 4 && config.jetpacks().containsKey(args[2])) {
-            return copyPartialMatches(args[3], Constant.AMOUNTS);
+            return copyPartialMatches(args[3], Constant.COMPLETER_AMOUNTS);
         }
         return null;
     }

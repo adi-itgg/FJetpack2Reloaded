@@ -34,8 +34,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommandTabCompleterPlugin {
 
-    private final List<String> amounts = List.of("32", "64", "96", "128", "256");
-
     private final Logger log;
     private final JavaPlugin plugin;
     private final FJConfig config;

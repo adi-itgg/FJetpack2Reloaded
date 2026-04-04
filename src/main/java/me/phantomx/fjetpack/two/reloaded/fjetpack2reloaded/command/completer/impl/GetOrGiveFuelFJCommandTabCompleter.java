@@ -38,13 +38,13 @@ public class GetOrGiveFuelFJCommandTabCompleter implements FJCommandTabCompleter
         }
         if (args.length == 3) {
             if (config.customFuels().containsKey(args[1])) {
-                return copyPartialMatches(args[2], Constant.AMOUNTS);
+                return copyPartialMatches(args[2], Constant.COMPLETER_AMOUNTS);
             } else {
                 return copyPartialMatches(args[2], config.customFuels().keySet());
             }
         }
         if (args.length == 4 && config.customFuels().containsKey(args[2])) {
-            return copyPartialMatches(args[3], Constant.AMOUNTS);
+            return copyPartialMatches(args[3], Constant.COMPLETER_AMOUNTS);
         }
         return null;
     }
