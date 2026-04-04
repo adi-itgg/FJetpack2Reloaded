@@ -4,6 +4,7 @@ import io.avaje.inject.PostConstruct;
 import io.avaje.inject.Prototype;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.completer.FJCommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.FJConfig;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.AccessDeniedLevelException;
@@ -40,6 +41,7 @@ public class CommandTabCompleterPlugin {
     private final FJConfig config;
     private final FJVersion version;
     private final JetpackItemFactory jetpackItemFactory;
+    private final FJCommandTabCompleter completer;
 
     private List<String> helpText;
 
@@ -67,63 +69,7 @@ public class CommandTabCompleterPlugin {
             return Collections.emptyList();
         }
 
-        switch (cmd) {
-            case SET -> { // cmd set completions
-                if (args.length == 2) {
-                    return copyPartialMatches(args[1], config.jetpacks().keySet());
-                }
-                if (args.length == 3) {
-                    return copyPartialMatches(args[2], amounts);
-                }
-            }
-            case SET_FUEL -> { // cmd set fuel completions
-                if (args.length == 2) {
-                    return copyPartialMatches(args[1], amounts);
-                }
-            }
-            case GET, GIVE -> { // cmd get/give jetpack completions
-                if (args.length == 2) {
-                    val suggests = new ArrayList<String>();
-                    if (sender instanceof Player) {
-                        suggests.addAll(config.jetpacks().keySet());
-                    }
-                    suggests.addAll(getOnlinePlayers(plugin.getServer()));
-                    return copyPartialMatches(args[1], suggests);
-                }
-                if (args.length == 3) {
-                    if (config.jetpacks().containsKey(args[1])) {
-                        return copyPartialMatches(args[2], amounts);
-                    } else {
-                        return copyPartialMatches(args[2], config.jetpacks().keySet());
-                    }
-                }
-                if (args.length == 4 && config.jetpacks().containsKey(args[2])) {
-                    return copyPartialMatches(args[3], amounts);
-                }
-            }
-            case GET_FUEL, GIVE_FUEL -> {
-                if (args.length == 2) {
-                    val suggests = new ArrayList<String>();
-                    if (sender instanceof Player) {
-                        suggests.addAll(config.customFuels().keySet());
-                    }
-                    suggests.addAll(getOnlinePlayers(plugin.getServer()));
-                    return copyPartialMatches(args[1], suggests);
-                }
-                if (args.length == 3) {
-                    if (config.customFuels().containsKey(args[1])) {
-                        return copyPartialMatches(args[2], amounts);
-                    } else {
-                        return copyPartialMatches(args[2], config.customFuels().keySet());
-                    }
-                }
-                if (args.length == 4 && config.customFuels().containsKey(args[2])) {
-                    return copyPartialMatches(args[3], amounts);
-                }
-            }
-        }
-
-        return Collections.emptyList();
+        return completer.onTabComplete(sender, cmd, args);
     }
 
 
