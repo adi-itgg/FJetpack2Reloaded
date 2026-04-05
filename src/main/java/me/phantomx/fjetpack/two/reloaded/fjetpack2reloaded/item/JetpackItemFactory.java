@@ -61,7 +61,6 @@ public class JetpackItemFactory {
         return item;
     }
 
-    @SuppressWarnings("deprecation")
     public ItemStack createJetpackItem(CommandSender sender, String jetpackId, long fuelValue) {
         val jetpack = config.jetpacks().get(jetpackId);
         if (jetpack == null) {
@@ -69,6 +68,16 @@ public class JetpackItemFactory {
         }
 
         val item = new ItemStack(jetpack.getItem());
+        return setJetpackItem(sender, item, jetpackId, fuelValue);
+    }
+
+    @SuppressWarnings("deprecation")
+    public ItemStack setJetpackItem(CommandSender sender, ItemStack item, String jetpackId, long fuelValue) {
+        val jetpack = config.jetpacks().get(jetpackId);
+        if (jetpack == null) {
+            throw new InfoLevelException("&cJetpack &l" + jetpackId + " &cdidn't exist");
+        }
+
         val itemMeta = item.getItemMeta();
         if (itemMeta == null) {
             throw new IllegalStateException("Invalid item meta");

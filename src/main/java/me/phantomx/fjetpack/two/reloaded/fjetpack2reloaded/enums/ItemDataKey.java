@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public enum ItemDataKey {
 
-    PLUGIN_ID("FJetpack2Reloaded"),
+    JETPACK_ID("FJetpack2Reloaded"),
     FUEL_VALUE_ID("FJ2RFuel"),
     CUSTOM_FUEL_ID("FJ2RCF"),
     PARTICLE_ID("FJ2RParticle"),
