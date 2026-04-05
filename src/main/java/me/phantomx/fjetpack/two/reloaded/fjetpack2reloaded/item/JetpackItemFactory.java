@@ -28,7 +28,7 @@ public class JetpackItemFactory {
     private final FJVersion version;
     private final ItemDataProvider itemDataProvider;
 
-    public ItemStack createCustomFuelItem(CommandSender sender, String customFuelId, int amount) {
+    public ItemStack createCustomFuelItem(String customFuelId, int amount) {
         if (config.customFuels().isEmpty()) {
             throw new InfoLevelException("&cNo custom fuels loaded");
         }
