@@ -5,6 +5,7 @@ import io.avaje.inject.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
-public class FJVersion implements Runnable {
+public class FJVersion {
 
     private static final int resourceId = 107883;
 
@@ -56,38 +57,31 @@ public class FJVersion implements Runnable {
             log.info("&cUnknown Server Version! - " + server.getVersion());
             return false;
         }
-//        if (serverVersion > 17) {
-            // TODO check if server api version is supported
-//            return true;
-//        }
         return true;
     }
 
     public void checkUpdate(CommandSender sender) {
-        server.getScheduler().runTaskAsynchronously(plugin, this);
-    }
+        server.getScheduler().runTaskAsynchronously(plugin, () -> {
+            var url = "https://api.spigotmc.org/legacy/update.php?resource=" + resourceId;
+            try (var scanner = new Scanner(new URL(url).openStream())) {
+                if (!scanner.hasNext()) {
+                    // cannot check for updates
+                    Messages.sendMessage(sender, "&cUnable to check for updates");
+                    return;
+                }
+                var spigotVersion = NumberUtils.toInt(scanner.next().replaceAll("\\D+", ""), 0);
+                var pluginVersion = NumberUtils.toInt(plugin.getDescription().getVersion().replaceAll("\\D+", ""), 0);
+                var hasUpdate = pluginVersion < spigotVersion;
 
-    @Override
-    public void run() {
-        var url = "https://api.spigotmc.org/legacy/update.php?resource=" + resourceId;
-        try(var scanner = new Scanner(new URL(url).openStream())) {
-            if (!scanner.hasNext()) {
-                // cannot check for updates
-                return;
+                if (hasUpdate) {
+                    Messages.sendMessage(sender, "&aYou are using an outdated version of FJetpack2Reloaded");
+                    return;
+                }
+                Messages.sendMessage(sender, "&aYou are using the latest version of FJetpack2Reloaded");
+            } catch (Exception e) {
+                log.error("Unable to check for updates: {}", e.getMessage());
             }
-            var spigotVersion = NumberUtils.toInt(scanner.next().replaceAll("\\D+", ""), 0);
-            var pluginVersion = NumberUtils.toInt(plugin.getDescription().getVersion().replaceAll("\\D+", ""), 0);
-            var hasUpdate = pluginVersion < spigotVersion;
-
-            if (hasUpdate) {
-                // TODO send msg has update
-                return;
-            }
-            // TODO send msg no update
-        } catch (Exception e) {
-            log.error("Unable to check for updates: {}", e.getMessage());
-        }
+        });
     }
-
 
 }
