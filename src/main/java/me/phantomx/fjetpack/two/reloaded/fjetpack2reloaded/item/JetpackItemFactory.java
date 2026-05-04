@@ -133,4 +133,15 @@ public class JetpackItemFactory {
         }
         return (customFuel == null) ? StringUtils.capitalize(fuelDisplay.toLowerCase()) : fuelDisplay;
     }
+
+    public Jetpack getJetpack(ItemStack itemStack) {
+        if (itemStack == null) {
+            return null;
+        }
+        var jetpackId = itemDataProvider.getString(itemStack, ItemDataKey.JETPACK_ID, null);
+        if (jetpackId == null) {
+            return null;
+        }
+        return config.jetpacks().get(jetpackId);
+    }
 }
