@@ -2,8 +2,6 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler;
 
 import lombok.SneakyThrows;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.MessageLvlException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,20 +63,6 @@ public class Catcher<T> {
     }
 
     @SneakyThrows
-    public @NotNull Catcher<T> onFailure(@NotNull ActionResultHandler<String> message) {
-        if (error != null)
-            error = new Exception(message + "\n" + ExceptionUtils.getStackTrace(error));
-        return this;
-    }
-
-    @SneakyThrows
-    public @NotNull Catcher<T> onFailureMessage(ActionHandler<String> handler) {
-        if (error != null && error instanceof MessageLvlException)
-            handler.handle(error.getMessage() != null ? error.getMessage() : ExceptionUtils.getStackTrace(error));
-        return this;
-    }
-
-    @SneakyThrows
     public @NotNull Catcher<T> onCompleted(ActionVoidHandler handler) {
         handler.action();
         return this;
@@ -86,10 +70,6 @@ public class Catcher<T> {
 
     public @NotNull T getOrDefault(T defaultValue) {
         if (error != null) return defaultValue;
-        return result;
-    }
-
-    public @Nullable T getOrNull() {
         return result;
     }
 
