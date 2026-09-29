@@ -4,13 +4,13 @@ import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.IslandFlag;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.GriefPrevention;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.SuperiorSkyblock;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.FlightSession;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Jetpack;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.GriefPrevention;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblock;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
 import me.ryanhamshire.GriefPrevention.Claim;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ public class ProtectionGuard {
         this.messages = messages;
     }
 
-    public boolean allowsGriefPrevention(@NotNull FJ2RPlayer session, @NotNull Jetpack jetpack) {
+    public boolean allowsGriefPrevention(@NotNull FlightSession session, @NotNull Jetpack jetpack) {
         val player = session.getPlayer();
         if (Permissions.isAdminOrOp(player)) return true;
         val griefPrevention = jetpack.getGriefPrevention();
@@ -67,7 +67,7 @@ public class ProtectionGuard {
         return true;
     }
 
-    public boolean allowsSuperiorSkyblock(@NotNull FJ2RPlayer session, @NotNull Jetpack jetpack) {
+    public boolean allowsSuperiorSkyblock(@NotNull FlightSession session, @NotNull Jetpack jetpack) {
         val player = session.getPlayer();
         if (!SuperiorSkyblock.isActive() || Permissions.isAdminOrOp(player)) return true;
         val superiorSkyblock2 = jetpack.getSuperiorSkyblock2();

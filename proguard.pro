@@ -22,20 +22,20 @@
 -keepclassmembers,allowobfuscation class * {
   @org.bukkit.event.EventHandler <methods>;
 }
--keep,allowobfuscation @me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.annotation.SectionPath class *
-# Keep data
--keepclassmembernames class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.** { private *; }
-# Keep enums
+-keep,allowobfuscation @me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.SectionPath class *
+# Keep config DTO field names: the loader maps YAML keys to fields by reflection.
+-keepclassmembernames class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.** { private *; }
+# Keep enums: config values (NONE/DROP/REMOVE) are resolved by name.
 -keepclassmembers class * extends java.lang.Enum {
     <fields>;
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 # Remove logs
--assumenosideeffects class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log {
+-assumenosideeffects class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log {
     public *** log(...);
     public *** debug(...);
 }
-# keep event's
--keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event.** { *; }
--keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.** { *; }
+# keep listeners & hooks
+-keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.** { *; }
+-keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.** { *; }

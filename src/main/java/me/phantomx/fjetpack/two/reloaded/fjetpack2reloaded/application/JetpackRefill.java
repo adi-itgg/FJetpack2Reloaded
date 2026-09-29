@@ -1,11 +1,11 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

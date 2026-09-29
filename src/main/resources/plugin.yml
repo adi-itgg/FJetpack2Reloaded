@@ -24,6 +24,7 @@ permissions:
       fjetpack2reloaded.give: true
       fjetpack2reloaded.getfuel: true
       fjetpack2reloaded.givefuel: true
+      fjetpack2reloaded.setfuel: true
       fjetpack2reloaded.checkupdate: true
   fjetpack2reloaded.checkupdate:
     description: Check update this plugin
@@ -48,4 +49,7 @@ permissions:
     default: false
   fjetpack2reloaded.set:
     description: Set jetpack item in hand
+    default: false
+  fjetpack2reloaded.setfuel:
+    description: Set fuel amount of the jetpack in hand
     default: false

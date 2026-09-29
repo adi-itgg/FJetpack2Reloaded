@@ -1,11 +1,11 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.FlightSession;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Particle;
@@ -29,7 +29,7 @@ public class JetpackParticles {
         this.log = new Log(getClass(), messages);
     }
 
-    public void start(@NotNull FJ2RPlayer session) {
+    public void start(@NotNull FlightSession session) {
         log.log("starting particle effect");
         val jetpack = session.getJetpack();
         if (jetpack == null || jetpack.getParticle() == null || !jetpack.getParticle().isEnable()) return;
@@ -58,7 +58,7 @@ public class JetpackParticles {
         task = null;
     }
 
-    private void render(@NotNull FJ2RPlayer session, @NotNull Object effect) {
+    private void render(@NotNull FlightSession session, @NotNull Object effect) {
         val player = session.getPlayer();
         val jetpack = session.getJetpack();
         if (jetpack == null || jetpack.getParticle() == null) return;

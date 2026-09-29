@@ -1,10 +1,10 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Placeholder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
