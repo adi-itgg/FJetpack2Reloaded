@@ -3,6 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackGrant;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
@@ -18,22 +19,26 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Objects;
 
-
+/**
+ * Translates /fj2r arguments into use case calls. Argument scanning is order-insensitive on purpose:
+ * {@code /fj2r give vip 64 Player} and {@code /fj2r give 64 Player vip} are both valid.
+ */
 public class FJ2RCommandExecutor {
 
     private final JavaPlugin plugin;
     private final YamlConfigRepository configs;
     private final Messages messages;
     private final ItemFactory items;
+    private final JetpackGrant grant;
     private final UpdateChecker updateChecker;
     private final Log log;
 
@@ -44,11 +49,13 @@ public class FJ2RCommandExecutor {
                                @NotNull YamlConfigRepository configs,
                                @NotNull Messages messages,
                                @NotNull ItemFactory items,
+                               @NotNull JetpackGrant grant,
                                @NotNull UpdateChecker updateChecker) {
         this.plugin = plugin;
         this.configs = configs;
         this.messages = messages;
         this.items = items;
+        this.grant = grant;
         this.updateChecker = updateChecker;
         this.log = new Log(getClass(), messages);
     }
@@ -171,17 +178,7 @@ public class FJ2RCommandExecutor {
                 return true;
             }
 
-            val targetPlayer = Arrays.stream(args)
-                    .map(Bukkit::getPlayerExact)
-                    .filter(Objects::nonNull)
-                    .findFirst().orElseGet(() -> {
-                        if (!(sender instanceof Player)) {
-                            messages.sendMessage(configs.message().getCmdPlayerOnly());
-                            return null;
-                        }
-                        return (Player) sender;
-                    });
-
+            val targetPlayer = targetOf(sender, args);
             if (targetPlayer == null) return true;
 
             val fuelAmount = Arrays.stream(args)
@@ -189,30 +186,8 @@ public class FJ2RCommandExecutor {
                     .map(NumberUtils::toInt)
                     .findFirst().orElse(0);
 
-            val result = items.createJetpackItem(sender, jetpackId, fuelAmount);
-            result.onSuccess(item -> {
-                addItemToInventory(targetPlayer, item);
-
-                if (sender == targetPlayer) {
-                    messages.sendMessage(sender, configs.message().getCmdGetSelf()
-                            .replace(Placeholder.JETPACK, jetpackId)
-                            .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount)));
-                    return;
-                }
-
-                messages.sendMessage(sender, configs.message().getCmdGiveSuccess()
-                        .replace(Placeholder.JETPACK, jetpackId)
-                        .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount))
-                        .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
-                );
-                messages.sendMessage(targetPlayer, configs.message().getCmdGiveReceived()
-                        .replace(Placeholder.JETPACK, jetpackId)
-                        .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount))
-                        .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
-                        .replace(Placeholder.SENDER, sender.getName())
-                );
-            });
-            result.throwIfError();
+            grant.giveJetpack(sender, targetPlayer, jetpackId, fuelAmount);
+            return true;
         }
 
         // cmd setfuel
@@ -279,17 +254,7 @@ public class FJ2RCommandExecutor {
                 return true;
             }
 
-            val targetPlayer = Arrays.stream(args)
-                    .map(Bukkit::getPlayerExact)
-                    .filter(Objects::nonNull)
-                    .findFirst().orElseGet(() -> {
-                        if (!(sender instanceof Player)) {
-                            messages.sendMessage(configs.message().getCmdPlayerOnly());
-                            return null;
-                        }
-                        return (Player) sender;
-                    });
-
+            val targetPlayer = targetOf(sender, args);
             if (targetPlayer == null) return true;
 
             val amount = Arrays.stream(args)
@@ -297,53 +262,25 @@ public class FJ2RCommandExecutor {
                     .map(NumberUtils::toInt)
                     .findFirst().orElse(1);
 
-            val result = items.createCustomFuelItem(sender, customFuelId, amount);
-            result.onSuccess(item -> {
-                addItemToInventory(targetPlayer, item);
-
-                if (sender == targetPlayer) {
-                    messages.sendMessage(sender, configs.message().getCmdFuelGiveSuccess()
-                            .replace(Placeholder.CUSTOM_FUEL, customFuelId)
-                            .replace(Placeholder.AMOUNT, String.valueOf(amount))
-                            .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
-                            .replace(Placeholder.SENDER, sender.getName())
-                    );
-                    return;
-                }
-
-                messages.sendMessage(sender, configs.message().getCmdFuelGiveSuccess()
-                        .replace(Placeholder.CUSTOM_FUEL, customFuelId)
-                        .replace(Placeholder.AMOUNT, String.valueOf(amount))
-                        .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
-                );
-                messages.sendMessage(targetPlayer, configs.message().getCmdFuelGiveReceived()
-                        .replace(Placeholder.CUSTOM_FUEL, customFuelId)
-                        .replace(Placeholder.AMOUNT, String.valueOf(amount))
-                        .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
-                        .replace(Placeholder.SENDER, sender.getName())
-                );
-            });
-            result.throwIfError();
-
+            grant.giveCustomFuel(sender, targetPlayer, customFuelId, amount);
             return true;
         }
 
         return true;
     }
 
-    private void addItemToInventory(@NotNull Player targetPlayer, @NotNull ItemStack item) {
-        val items = targetPlayer.getInventory().addItem(item);
-        // drop if inventory is full!
-        items.forEach((index, itemStack) -> {
-            val location = targetPlayer.getLocation();
-            targetPlayer.getWorld().dropItemNaturally(location, itemStack);
-            messages.sendMessage(targetPlayer, configs.message().getInventoryFull()
-                    .replace(Placeholder.X, String.valueOf(location.getX()))
-                    .replace(Placeholder.Y, String.valueOf(location.getY()))
-                    .replace(Placeholder.Z, String.valueOf(location.getZ()))
-            );
-        });
-        targetPlayer.updateInventory();
+    /** First online player named in the arguments, falling back to the sender when it is a player. */
+    private @Nullable Player targetOf(@NotNull CommandSender sender, @NotNull String[] args) {
+        return Arrays.stream(args)
+                .map(Bukkit::getPlayerExact)
+                .filter(Objects::nonNull)
+                .findFirst().orElseGet(() -> {
+                    if (!(sender instanceof Player)) {
+                        messages.sendMessage(configs.message().getCmdPlayerOnly());
+                        return null;
+                    }
+                    return (Player) sender;
+                });
     }
 
 }

@@ -1,6 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackGrant;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.CommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.FJ2RCommandExecutor;
@@ -53,7 +54,8 @@ public class FJetpack2Reloaded extends JavaPlugin {
         this.players = new PlayerRegistry(this, configs, messages, itemTags,
                 new ProtectionGuard(configs, messages));
         this.updateChecker = new UpdateChecker(this, messages);
-        this.commandExecutor = new FJ2RCommandExecutor(this, configs, messages, items, updateChecker);
+        val grant = new JetpackGrant(configs, messages, items);
+        this.commandExecutor = new FJ2RCommandExecutor(this, configs, messages, items, grant, updateChecker);
         this.tabCompleter = new CommandTabCompleter(configs, messages);
 
         val serverSupported = Version.isServerSupport(messages, itemTags);

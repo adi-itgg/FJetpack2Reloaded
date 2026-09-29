@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackRefill;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
@@ -51,7 +52,7 @@ public class RegisterEvent implements Listener {
         this.onCrouch = new OnPlayerCrouchEvent(players, items);
         this.onToggleFlight = new OnPlayerToggleFlightEvent(players);
         this.onDied = new OnPlayerDiedEvent(players, configs, messages);
-        this.onInventoryClick = new OnPlayerInventoryClickEvent(players, items, itemTags, messages);
+        this.onInventoryClick = new OnPlayerInventoryClickEvent(players, itemTags, new JetpackRefill(configs, itemTags), messages);
         this.onDamaged = new OnPlayerDamagedEvent(items);
         this.onJoinLeave = new OnPlayerJoinLeaveEvent(players, configs, updateChecker);
     }

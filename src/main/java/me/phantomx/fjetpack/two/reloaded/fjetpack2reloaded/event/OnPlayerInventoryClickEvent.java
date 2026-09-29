@@ -2,17 +2,15 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
 import lombok.Getter;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackRefill;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -27,17 +25,17 @@ public class OnPlayerInventoryClickEvent {
     private static final ItemStack ITEM_AIR = new ItemStack(Material.AIR);
 
     private final PlayerRegistry players;
-    private final ItemFactory items;
     private final ItemTagCodec itemTags;
+    private final JetpackRefill refill;
     private final Log log;
 
     public OnPlayerInventoryClickEvent(@NotNull PlayerRegistry players,
-                                       @NotNull ItemFactory items,
                                        @NotNull ItemTagCodec itemTags,
+                                       @NotNull JetpackRefill refill,
                                        @NotNull MessageSink messages) {
         this.players = players;
-        this.items = items;
         this.itemTags = itemTags;
+        this.refill = refill;
         this.log = new Log(getClass(), messages);
     }
 
@@ -51,38 +49,9 @@ public class OnPlayerInventoryClickEvent {
 
         checkJetpack(e, cursorItem, slotItem);
 
-        if (cursorItem.getType() == Material.AIR || slotItem.getType() == Material.AIR) return;
-
-        // handle refill fuel
-        if (!slotItem.hasItemMeta() || slotItem.getType() == Material.AIR || slotItem.getAmount() == 0) return;
-        if (!e.isLeftClick() && !e.isRightClick() && e.getClick() == ClickType.WINDOW_BORDER_LEFT && e.getClick() == ClickType.WINDOW_BORDER_RIGHT) return;
-        val jetpack = items.jetpackOf(slotItem);
-        if (jetpack == null) return;
-
-        val customFuel = jetpack.getFuel().getCustomFuel();
-        if (customFuel != null) {
-            if (customFuel.getItem() != cursorItem.getType()
-                    || !itemTags.getCustomFuelID(cursorItem).equals(customFuel.getId())
-            ) return;
-            if (!Permissions.hasRawPermission(player, customFuel.getPermission()))
-                NoPermissionLvlException.send();
-        }
-        if (customFuel == null)
-            if (jetpack.getFuel().getItem() != cursorItem.getType()) return;
-
-        if (!Permissions.hasRawPermission(player, jetpack.getPermission(Permissions.PERMISSION_REFILL_FUEL_SUFFIX)))
-            NoPermissionLvlException.send();
+        if (!refill.refill(player, slotItem, cursorItem, e.isLeftClick())) return;
 
         e.setCancelled(true);
-
-        val addFuelAmount = e.isLeftClick() ? cursorItem.getAmount() : 1;
-        var jpFuel = itemTags.getFuelValue(slotItem);
-        if (jpFuel == null) jpFuel = 0L;
-        val fuel = jpFuel + addFuelAmount;
-
-        val item = itemTags.setFuelValue(slotItem, fuel);
-        ItemFactory.updateDisplayItem(jetpack, item, fuel);
-
         if (e.isLeftClick()) {
             player.setItemOnCursor(getITEM_AIR());
             return;
