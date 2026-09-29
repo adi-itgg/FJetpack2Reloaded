@@ -4,6 +4,15 @@ import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackGrant;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.CommandTabCompleter;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.HelpText;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.PlayerTarget;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.CheckUpdateCommandHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.GetOrGiveCommandHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.GetOrGiveFuelCommandHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.HelpCommandHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.ReloadCommandHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.SetCommandHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.SetFuelCommandHandler;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.GetOrGiveCommandCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.GetOrGiveFuelCommandCompleter;
@@ -61,7 +70,16 @@ public class FJetpack2Reloaded extends JavaPlugin {
                 new ProtectionGuard(configs, messages));
         this.updateChecker = new UpdateChecker(this, messages);
         val grant = new JetpackGrant(configs, messages, items);
-        this.commandExecutor = new FJ2RCommandExecutor(this, configs, messages, items, grant, updateChecker);
+        val helpText = new HelpText(this);
+        val targets = new PlayerTarget(messages, configs);
+        this.commandExecutor = new FJ2RCommandExecutor(messages, List.of(
+                new ReloadCommandHandler(configs),
+                new CheckUpdateCommandHandler(updateChecker),
+                new SetCommandHandler(messages, configs, items, targets, helpText),
+                new SetFuelCommandHandler(messages, configs, items, targets, helpText),
+                new GetOrGiveCommandHandler(messages, configs, grant, targets, helpText),
+                new GetOrGiveFuelCommandHandler(messages, configs, grant, targets, helpText)
+        ), new HelpCommandHandler(messages, helpText));
         this.tabCompleter = new CommandTabCompleter(messages, List.of(
                 new NoArgsCommandCompleter(FJ2RCommand.HELP, FJ2RCommand.RELOAD, FJ2RCommand.CHECK_UPDATE),
                 new SetCommandCompleter(configs),
