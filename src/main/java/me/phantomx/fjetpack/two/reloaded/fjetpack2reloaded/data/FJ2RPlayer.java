@@ -274,7 +274,8 @@ public class FJ2RPlayer {
 
         val delayInSec = jetpack.getFuel().getBurnRate();
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, bukkitTask -> {
+        // main thread: the tick touches inventory/equipment/player state
+        Bukkit.getScheduler().runTaskTimer(plugin, bukkitTask -> {
             if (burnTask == null) burnTask = bukkitTask;
             if (!starting && !isActive()) {
                 bukkitTask.cancel();

@@ -40,7 +40,8 @@ public class JetpackParticles {
             log.log("&cInvalid particle effect name: %s - details: %s", jetpack.getParticle().getEffect(), error);
         }).getOrDefault(Version.getServerVersion() > 8 ? Particle.CLOUD : Effect.SMOKE);
         log.log("creating task for particle effect");
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, bukkitTask -> {
+        // main thread: spawnParticle / playEffect are not thread safe
+        Bukkit.getScheduler().runTaskTimer(plugin, bukkitTask -> {
             // the Bukkit API returns void here, so the task handle is captured on its first run
             if (task == null) task = bukkitTask;
             if (!session.isActive()) {

@@ -39,13 +39,18 @@ public class UpdateChecker {
                     );
 
                     if (pluginVersion < Integer.parseInt(spigotVersion.replaceAll("\\D+", ""))) {
-                        messages.sendMessage(sender, "&bThere is a new update available! v%s\nhttps://www.spigotmc.org/resources/fjetpack2reloaded.107883/", spigotVersion);
+                        reply(sender, "&bThere is a new update available! v%s\nhttps://www.spigotmc.org/resources/fjetpack2reloaded.107883/", spigotVersion);
                         return;
                     }
-                    messages.sendMessage(sender, "&aThere is not a new update available. You are using the latest version");
+                    reply(sender, "&aThere is not a new update available. You are using the latest version");
                 }
-            }).onFailure(error -> messages.sendMessage(sender, "Unable to check for updates: %s", error));
+            }).onFailure(error -> reply(sender, "Unable to check for updates: %s", error));
         });
+    }
+
+    /** The HTTP call is async; chat must go back to the main thread. */
+    private void reply(@NotNull CommandSender sender, @NotNull String message, Object... args) {
+        Bukkit.getScheduler().runTask(plugin, () -> messages.sendMessage(sender, message, args));
     }
 
 }
