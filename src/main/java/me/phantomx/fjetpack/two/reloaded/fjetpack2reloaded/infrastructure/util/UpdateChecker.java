@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util;
 
+import jakarta.inject.Singleton;
 import lombok.Cleanup;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
@@ -13,6 +14,7 @@ import java.net.URL;
 import java.util.Scanner;
 
 /** Checks the SpigotMC resource version in the background. */
+@Singleton
 public class UpdateChecker {
 
     private static final int RESOURCE_ID = 107883;

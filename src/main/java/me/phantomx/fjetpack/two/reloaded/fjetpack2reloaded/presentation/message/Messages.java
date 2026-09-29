@@ -1,31 +1,29 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.ColorText;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Message;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.ColorText;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
+@Singleton
 public class Messages implements MessageSink {
 
-    public static final String DEFAULT_PREFIX = "&e&l[&bFJetpack&62Reloaded&e&l]&r";
+    private static final String DEFAULT_PREFIX = "&e&l[&bFJetpack&62Reloaded&e&l]&r";
 
-    /**
-     * Read lazily on every send: the configured prefix becomes available as soon as message.yml is
-     * loaded, and must not be captured earlier (config reload replaces it).
-     */
-    private final Supplier<Message> configuredMessage;
+    /** Until message.yml is loaded, and whenever the prefix is not configured. */
+    private volatile String prefix = DEFAULT_PREFIX;
 
-    public Messages(@NotNull Supplier<Message> configuredMessage) {
-        this.configuredMessage = configuredMessage;
+    @Override
+    public void usePrefix(@NotNull String prefix) {
+        this.prefix = prefix;
     }
-
 
     @Override
     public void send(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
@@ -38,8 +36,8 @@ public class Messages implements MessageSink {
 
     public void sendMessage(boolean withPrefix, @NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
         if (message.isEmpty()) return;
-        val prefix = currentPrefix() + " ";
-        message = ColorText.translate(withPrefix ? prefix + message : message);
+        val effectivePrefix = prefix + " ";
+        message = ColorText.translate(withPrefix ? effectivePrefix + message : message);
         if (args.length == 0) {
             target.sendMessage(message);
             return;
@@ -73,14 +71,6 @@ public class Messages implements MessageSink {
      */
     public void sendMessage(@NotNull String message, Object... args) {
         sendMessage(true, Bukkit.getConsoleSender(), message, args);
-    }
-
-    private @NotNull String currentPrefix() {
-        try {
-            return configuredMessage.get().getPrefix();
-        } catch (Throwable ignored) {
-            return DEFAULT_PREFIX;
-        }
     }
 
 }

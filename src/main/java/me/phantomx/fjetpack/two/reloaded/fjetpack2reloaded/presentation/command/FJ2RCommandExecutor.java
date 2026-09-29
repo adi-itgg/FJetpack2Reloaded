@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.CommandHandler;
@@ -13,18 +14,20 @@ import java.util.List;
  * Bukkit command entry point: finds the {@link CommandHandler} of the typed subcommand and lets it
  * run. Anything unknown - including {@code help} - falls back to the help handler.
  */
+@Singleton
 public class FJ2RCommandExecutor {
 
     private final Log log;
     private final List<CommandHandler> handlers;
     private final CommandHandler helpFallback;
 
-    public FJ2RCommandExecutor(@NotNull MessageSink messages,
-                               @NotNull List<CommandHandler> handlers,
-                               @NotNull CommandHandler helpFallback) {
+    public FJ2RCommandExecutor(@NotNull MessageSink messages, @NotNull List<CommandHandler> handlers) {
         this.log = new Log(getClass(), messages);
         this.handlers = handlers;
-        this.helpFallback = helpFallback;
+        this.helpFallback = handlers.stream()
+                .filter(handler -> handler.supports(FJ2RCommand.HELP.literal()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("no CommandHandler registered for 'help'"));
     }
 
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

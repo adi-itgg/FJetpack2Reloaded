@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 /** {@code /fj2r setfuel <amount>} */
+@Singleton
 public class SetFuelCommandCompleter implements CommandCompleter {
 
     @Override

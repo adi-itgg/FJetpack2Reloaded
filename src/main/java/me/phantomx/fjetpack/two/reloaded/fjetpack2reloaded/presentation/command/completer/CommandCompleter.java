@@ -12,6 +12,6 @@ import java.util.List;
 public interface CommandCompleter extends SubCommand {
 
     /** Suggestions for the arguments after the subcommand. Never null. */
-    @NotNull List<String> complete(@NotNull CommandSender sender, @NotNull String @NotNull [] args);
+    @NotNull List<String> complete(@NotNull CommandSender sender, @NotNull String[] args);
 
 }

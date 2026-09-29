@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Placeholder;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 /** {@code /fj2r setfuel <amount>} - set the fuel of the jetpack in hand. */
+@Singleton
 public class SetFuelCommandHandler implements CommandHandler {
 
     private final Messages messages;

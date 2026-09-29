@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Hands jetpack / custom fuel items to a player and reports the result to both sides.
  */
+@Singleton
 public class JetpackGrant {
 
     private final YamlConfigRepository configs;

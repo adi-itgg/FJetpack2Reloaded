@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
@@ -15,6 +16,7 @@ import java.util.Set;
  * {@code /fj2r get|give [player] [jetpack] [fuel]} - arguments can come in any order, so the
  * suggestions depend on which of them is already present.
  */
+@Singleton
 public class GetOrGiveCommandCompleter implements CommandCompleter {
 
     private final YamlConfigRepository configs;

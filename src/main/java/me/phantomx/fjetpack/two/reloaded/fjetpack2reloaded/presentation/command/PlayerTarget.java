@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
 import org.bukkit.Bukkit;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /** Resolves which player a command targets, with the player-only message in one place. */
+@Singleton
 public class PlayerTarget {
 
     private final Messages messages;

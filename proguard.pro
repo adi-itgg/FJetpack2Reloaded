@@ -39,3 +39,9 @@
 # keep listeners & hooks
 -keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.** { *; }
 -keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.** { *; }
+
+# Avaje Inject: the generated module is discovered at runtime through META-INF/services, so the
+# provider file must follow renamed classes and the module class must keep its name.
+-adaptresourcefilecontents META-INF/services/**
+-keepnames class * implements io.avaje.inject.spi.InjectExtension
+-keep class io.avaje.inject.** { *; }

@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 /** {@code /fj2r getfuel|givefuel [player] [customFuel] [amount]} */
+@Singleton
 public class GetOrGiveFuelCommandCompleter implements CommandCompleter {
 
     private final YamlConfigRepository configs;

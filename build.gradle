@@ -45,6 +45,11 @@ dependencies {
     //noinspection VulnerableLibrariesLocal
     compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
 
+    // Dependency injection. The avaje generator MUST be declared before lombok (see AGENTS.md).
+    def injectVersion = '12.3'
+    implementation "io.avaje:avaje-inject:${injectVersion}"
+    annotationProcessor "io.avaje:avaje-inject-generator:${injectVersion}"
+
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 

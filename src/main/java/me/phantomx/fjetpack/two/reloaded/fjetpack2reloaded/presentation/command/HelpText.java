@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command;
 
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -11,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /** Loads help.txt from the jar, with the version placeholder replaced. */
+@Singleton
 public class HelpText {
 
     private final JavaPlugin plugin;

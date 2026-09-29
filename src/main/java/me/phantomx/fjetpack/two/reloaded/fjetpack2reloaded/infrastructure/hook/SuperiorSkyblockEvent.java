@@ -6,10 +6,10 @@ import com.bgsoftware.superiorskyblock.api.events.PluginInitializeEvent;
 import com.bgsoftware.superiorskyblock.api.island.IslandFlag;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
+import jakarta.inject.Singleton;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblock;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@Singleton
 public class SuperiorSkyblockEvent implements Listener {
 
     private final JavaPlugin plugin;
@@ -36,7 +37,13 @@ public class SuperiorSkyblockEvent implements Listener {
         this.configs = configs;
         this.messages = messages;
         this.players = players;
+    }
 
+    /**
+     * Called once the plugin has decided to stay enabled. The bean constructor stays free of side
+     * effects on purpose: building the object graph must not talk to the server.
+     */
+    public void hook() {
         if (Bukkit.getServer().getPluginManager().isPluginEnabled(SuperiorSkyblock.PLUGIN_NAME))
             messages.sendMessage("&aRegistering %s...", SuperiorSkyblock.PLUGIN_NAME);
         Bukkit.getScheduler().runTaskLater(plugin, this::checkIsHooked, 3 * 20L);

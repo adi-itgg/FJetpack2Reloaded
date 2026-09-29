@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
+import jakarta.inject.Singleton;
 import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.IslandFlag;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * Answers the question and messages the player; the claim/island cache lives on the session.
  */
+@Singleton
 public class ProtectionGuard {
 
     private final YamlConfigRepository configs;

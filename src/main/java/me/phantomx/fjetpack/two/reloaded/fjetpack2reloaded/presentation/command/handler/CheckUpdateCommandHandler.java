@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.UpdateChecker;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import org.bukkit.command.CommandSender;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 /** {@code /fj2r checkupdate} */
+@Singleton
 public class CheckUpdateCommandHandler implements CommandHandler {
 
     private final UpdateChecker updateChecker;

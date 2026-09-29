@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackGrant;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 /** {@code /fj2r getfuel|givefuel [player] [customFuel] [amount]} */
+@Singleton
 public class GetOrGiveFuelCommandHandler implements CommandHandler {
 
     private final Messages messages;

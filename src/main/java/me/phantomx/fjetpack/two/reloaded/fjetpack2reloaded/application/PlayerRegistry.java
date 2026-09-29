@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
@@ -20,6 +21,7 @@ import java.util.WeakHashMap;
  * <p>
  * Keyed weakly by UUID on purpose: entries disappear when a player object is collected.
  */
+@Singleton
 public class PlayerRegistry {
 
     private final Map<UUID, FlightSession> players = new WeakHashMap<>();

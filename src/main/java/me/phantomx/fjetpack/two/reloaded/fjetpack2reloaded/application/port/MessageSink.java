@@ -10,13 +10,19 @@ import org.jetbrains.annotations.NotNull;
  * Implemented by {@link Messages}. Infrastructure (e.g. the config loader) reports through this
  * port instead of depending on the concrete presentation class.
  */
-@FunctionalInterface
 public interface MessageSink {
 
-    void send(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args);
+    void send(@NotNull CommandSender target, @NotNull String message, Object... args);
+
+    /**
+     * The configured message prefix, pushed by the config repository the moment message.yml is
+     * loaded. Pushing it keeps the port free of a back-reference to the repository, so the two
+     * beans do not form a cycle.
+     */
+    void usePrefix(@NotNull String prefix);
 
     /** Console output, for infrastructure warnings and startup lines. */
-    default void sendToConsole(@NotNull String message, Object @NotNull ... args) {
+    default void sendToConsole(@NotNull String message, Object... args) {
         send(Bukkit.getConsoleSender(), message, args);
     }
 

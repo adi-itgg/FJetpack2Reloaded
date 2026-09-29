@@ -134,6 +134,11 @@ class ConfigValueMappersTest {
             messages.add(String.format(message, args));
         }
 
+        
+        public void usePrefix(String prefix) {
+            // this test does not check the prefix
+        }
+
         boolean isEmpty() {
             return messages.isEmpty();
         }

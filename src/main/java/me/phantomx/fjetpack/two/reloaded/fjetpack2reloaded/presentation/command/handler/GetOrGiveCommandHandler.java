@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackGrant;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 /** {@code /fj2r get|give [player] [jetpack] [fuel]} - arguments may come in any order. */
+@Singleton
 public class GetOrGiveCommandHandler implements CommandHandler {
 
     private final Messages messages;

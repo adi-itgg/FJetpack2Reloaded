@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item;
 
+import jakarta.inject.Singleton;
 import lombok.SneakyThrows;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.StoredKey;
@@ -7,7 +8,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.V
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,15 +20,16 @@ import java.util.Random;
  * <p>
  * Owns the per-server "run id" that marks a jetpack as active for this plugin instance.
  */
+@Singleton
 public class ItemTagCodec {
 
     private static final int RUN_ID_DRAWS = 5;
 
-    private final Plugin plugin;
+    private final JavaPlugin plugin;
     private final Random random = new Random();
     private final int runId = nextRunId();
 
-    public ItemTagCodec(@NotNull Plugin plugin) {
+    public ItemTagCodec(@NotNull JavaPlugin plugin) {
         this.plugin = plugin;
     }
 

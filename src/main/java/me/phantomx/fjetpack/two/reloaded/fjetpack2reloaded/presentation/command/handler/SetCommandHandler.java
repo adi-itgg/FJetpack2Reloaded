@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Placeholder;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 /** {@code /fj2r set <jetpack> <fuel>} - turn the item in hand into a jetpack. */
+@Singleton
 public class SetCommandHandler implements CommandHandler {
 
     private final Messages messages;

@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config;
 
+import jakarta.inject.Singleton;
 import lombok.SneakyThrows;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Config;
@@ -30,6 +31,7 @@ import java.util.Map;
  * <p>
  * Field names of the {@code data.config} DTOs are the YAML keys - do not rename them.
  */
+@Singleton
 public class YamlConfigRepository {
 
     private static final String CONFIG_YAML = "config.yml";
@@ -174,6 +176,7 @@ public class YamlConfigRepository {
             assert loadedMessage != null;
 
             message = loadedMessage;
+            messages.usePrefix(loadedMessage.getPrefix());
             log.log("&aLoaded config %s - %s", MESSAGE_YAML, loadedMessage);
         }).onFailure(error -> log.log("&cLoad message.yml error: %s", error));
     }

@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Builds and mutates the jetpack / custom fuel items from the loaded config.
  */
+@Singleton
 public class ItemFactory {
 
     private final YamlConfigRepository configs;

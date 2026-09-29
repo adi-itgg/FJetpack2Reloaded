@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import org.bukkit.command.CommandSender;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /** {@code /fj2r set <jetpack> <fuel>} */
+@Singleton
 public class SetCommandCompleter implements CommandCompleter {
 
     private final YamlConfigRepository configs;

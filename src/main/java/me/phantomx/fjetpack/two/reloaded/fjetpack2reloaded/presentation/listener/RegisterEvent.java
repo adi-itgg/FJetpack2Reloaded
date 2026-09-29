@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackRefill;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Bukkit event entry point: forwards to the handlers and turns exceptions into user feedback.
  */
+@Singleton
 public class RegisterEvent implements Listener {
 
     private final Log log;

@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command;
 
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
@@ -18,6 +19,7 @@ import java.util.List;
  * Bukkit tab completion entry point: filters the subcommands the sender may use, then hands the
  * arguments to the {@link CommandCompleter} registered for that subcommand.
  */
+@Singleton
 public class CommandTabCompleter {
 
     @Getter(lazy = true)

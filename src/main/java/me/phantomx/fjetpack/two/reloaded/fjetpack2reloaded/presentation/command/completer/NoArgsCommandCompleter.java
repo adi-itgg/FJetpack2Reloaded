@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Set;
 
 /** Subcommands without further arguments. */
+// created by PluginFactory: avaje cannot inject a varargs constructor
 public class NoArgsCommandCompleter implements CommandCompleter {
 
     private final Set<FJ2RCommand> commands;
 
-    public NoArgsCommandCompleter(FJ2RCommand @NotNull ... commands) {
+    public NoArgsCommandCompleter(FJ2RCommand... commands) {
         this.commands = Set.of(commands);
     }
 

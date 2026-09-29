@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface CommandHandler extends SubCommand {
 
-    void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args);
+    void execute(@NotNull CommandSender sender, @NotNull String[] args);
 
     /** Shared permission gate: the literal of the subcommand is the permission node. */
     default void requirePermission(@NotNull CommandSender sender, @NotNull FJ2RCommand command) {
