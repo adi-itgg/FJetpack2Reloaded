@@ -49,9 +49,9 @@ public class Version {
     }).get();
 
     public static boolean isServerSupport(@NotNull MessageSink messages, @NotNull ItemTagCodec itemTags) {
-        messages.send(Bukkit.getConsoleSender(), "&6Checking Server Version...");
+        messages.sendToConsole("&6Checking Server Version...");
         if (getServerVersion() == 0) {
-            messages.send(Bukkit.getConsoleSender(), "&cUnknown Server Version! - " + Bukkit.getVersion());
+            messages.sendToConsole("&cUnknown Server Version! - " + Bukkit.getVersion());
             return false;
         }
         if (getServerVersion() > 17) {
@@ -59,11 +59,11 @@ public class Version {
             armor = itemTags.setJetpack(armor, getNmsApiVersion());
             val storedValue = itemTags.getJetpackID(armor, "");
             if (!storedValue.equals(getNmsApiVersion())) {
-                messages.send(Bukkit.getConsoleSender(), "&cUnsupported server api version!");
+                messages.sendToConsole("&cUnsupported server api version!");
                 return false;
             }
         }
-        messages.send(Bukkit.getConsoleSender(), "&6Detected Server: &a%s v%d - API %s", Bukkit.getName(), getServerVersion(), getNmsApiVersion());
+        messages.sendToConsole("&6Detected Server: &a%s v%d - API %s", Bukkit.getName(), getServerVersion(), getNmsApiVersion());
         return true;
     }
 

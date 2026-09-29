@@ -25,12 +25,12 @@ public class Log {
     public void log(@Nullable Object message, Object... args) {
         if (!DEBUG) return;
         if (message instanceof String text) {
-            messages.send(Bukkit.getConsoleSender(), text, args);
+            messages.sendToConsole(text, args);
             return;
         }
         val sb = new StringBuilder();
         sb.append(message);
-        messages.send(Bukkit.getConsoleSender(), sb.toString(), args);
+        messages.sendToConsole(sb.toString(), args);
         sb.setLength(0);
     }
 

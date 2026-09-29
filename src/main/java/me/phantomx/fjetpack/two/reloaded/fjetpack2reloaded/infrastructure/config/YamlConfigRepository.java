@@ -10,7 +10,8 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Cat
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Nothing;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping.ConfigValueMappers;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.ColorText;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -39,6 +40,7 @@ public class YamlConfigRepository {
     private final JavaPlugin plugin;
     private final MessageSink messages;
     private final Log log;
+    private final ConfigValueMappers mappers = ConfigValueMappers.defaults();
 
     private Config config;
     private Message message;
@@ -105,7 +107,7 @@ public class YamlConfigRepository {
             val section = loadConfig(CONFIG_YAML);
             assert section != null;
 
-            val conf = ConfigsLoader.appendConfigValue(section, Config.class, customFuels, messages);
+            val conf = mappers.mapSection(section, Config.class, customFuels, messages);
             assert conf != null;
             config = conf;
         });
@@ -120,13 +122,13 @@ public class YamlConfigRepository {
 
             for (String id : section.getKeys(false))
                 Catcher.create(() -> {
-                    val jetpack = ConfigsLoader.appendConfigValue(section.getConfigurationSection(id), Jetpack.class, customFuels, messages);
+                    val jetpack = mappers.mapSection(section.getConfigurationSection(id), Jetpack.class, customFuels, messages);
                     assert jetpack != null;
                     jetpack.setId(id);
                     return jetpack;
                 }).onSuccess(jetpack -> {
-                    jetpack.setDisplayName(Messages.translateColorCodes(jetpack.getDisplayName()));
-                    jetpack.setLore(jetpack.getLore().stream().map(Messages::translateColorCodes).toList());
+                    jetpack.setDisplayName(ColorText.translate(jetpack.getDisplayName()));
+                    jetpack.setLore(jetpack.getLore().stream().map(ColorText::translate).toList());
                     jetpackList.put(jetpack.getId(), jetpack);
                     log.log("&aLoaded Jetpack:&r %s", jetpack);
                     messages.send(sender, "&aLoaded jetpack: &l%s", id);
@@ -147,11 +149,11 @@ public class YamlConfigRepository {
             val loadedCustomFuels = new HashMap<String, CustomFuel>();
             for (String id : section.getKeys(false)) {
                 Catcher.create(() -> {
-                    val customFuel = ConfigsLoader.appendConfigValue(section.getConfigurationSection(id), CustomFuel.class, customFuels, messages);
+                    val customFuel = mappers.mapSection(section.getConfigurationSection(id), CustomFuel.class, customFuels, messages);
                     assert customFuel != null;
                     customFuel.setId(id);
-                    customFuel.setDisplayName(Messages.translateColorCodes(customFuel.getDisplayName()));
-                    customFuel.setLore(customFuel.getLore().stream().map(Messages::translateColorCodes).toList());
+                    customFuel.setDisplayName(ColorText.translate(customFuel.getDisplayName()));
+                    customFuel.setLore(customFuel.getLore().stream().map(ColorText::translate).toList());
                     return customFuel;
                 }).onSuccess(customFuel -> {
                     loadedCustomFuels.put(customFuel.getId(), customFuel);
@@ -168,7 +170,7 @@ public class YamlConfigRepository {
             val section = loadConfig(MESSAGE_YAML);
             assert section != null;
 
-            val loadedMessage = ConfigsLoader.appendConfigValue(section, Message.class, customFuels, messages);
+            val loadedMessage = mappers.mapSection(section, Message.class, customFuels, messages);
             assert loadedMessage != null;
 
             message = loadedMessage;

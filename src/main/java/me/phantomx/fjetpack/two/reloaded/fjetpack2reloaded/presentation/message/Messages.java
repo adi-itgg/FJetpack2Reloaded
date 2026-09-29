@@ -2,17 +2,15 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.ColorText;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Message;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Messages implements MessageSink {
 
@@ -28,26 +26,6 @@ public class Messages implements MessageSink {
         this.configuredMessage = configuredMessage;
     }
 
-    /** Pure formatting helper (hex {@code #rrggbb} + legacy {@code &} codes). Holds no state. */
-    public static @NotNull String translateColorCodes(@NotNull String message) {
-        Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
-        Matcher matcher = pattern.matcher(message);
-        while (matcher.find()) {
-            String hexCode = message.substring(matcher.start(), matcher.end());
-            String replaceSharp = hexCode.replace('#', 'x');
-
-            char[] ch = replaceSharp.toCharArray();
-            StringBuilder builder = new StringBuilder();
-            for (char c : ch) {
-                builder.append("&").append(c);
-            }
-
-            message = message.replace(hexCode, builder.toString());
-            matcher = pattern.matcher(message);
-        }
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        return message;
-    }
 
     @Override
     public void send(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
@@ -61,7 +39,7 @@ public class Messages implements MessageSink {
     public void sendMessage(boolean withPrefix, @NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
         if (message.isEmpty()) return;
         val prefix = currentPrefix() + " ";
-        message = translateColorCodes(withPrefix ? prefix + message : message);
+        message = ColorText.translate(withPrefix ? prefix + message : message);
         if (args.length == 0) {
             target.sendMessage(message);
             return;
