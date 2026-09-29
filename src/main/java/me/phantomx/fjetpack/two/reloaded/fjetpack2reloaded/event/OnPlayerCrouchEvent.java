@@ -2,6 +2,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -32,15 +34,19 @@ public class OnPlayerCrouchEvent {
         val offHandItem = player.getInventory().getItemInOffHand();
         val jetpack = items.jetpackOf(offHandItem);
         if (jetpack != null && jetpack.isRunInOffHandOnly()) {
-            if (ac.isJetpack(offHandItem, false, true))
-                ac.turnOn();
+            val check = ac.isJetpack(offHandItem, false, true);
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.send();
+            if (check == FlightCheck.ALLOWED) ac.turnOn();
             return;
         }
 
         val equipment = player.getEquipment();
         assert equipment != null;
         for (@Nullable ItemStack armor : equipment.getArmorContents()) {
-            if (!ac.isJetpack(armor, false, true)) continue;
+            val check = ac.isJetpack(armor, false, true);
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.send();
+            if (check == FlightCheck.BLOCKED) return;
+            if (check != FlightCheck.ALLOWED) continue;
             if (ac.getJetpack() == null) continue;
             if (ac.getJetpack().isRunInOffHandOnly()) return;
             ac.turnOn();

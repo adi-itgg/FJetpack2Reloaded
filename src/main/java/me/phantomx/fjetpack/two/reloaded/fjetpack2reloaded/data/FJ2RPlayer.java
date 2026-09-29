@@ -1,18 +1,16 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data;
 
-import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
-import com.bgsoftware.superiorskyblock.api.island.IslandFlag;
-import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import lombok.*;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackParticles;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.fuel.FuelPolicy;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.fuel.FuelStop;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.JetpackEvent;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.ActionResultReturnHandler;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.GriefPrevention;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.SuperiorSkyblock;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
@@ -22,9 +20,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import me.ryanhamshire.GriefPrevention.Claim;
 import org.bukkit.Bukkit;
-import org.bukkit.Effect;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -37,8 +33,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static java.lang.Math.sin;
-
+/**
+ * Live state and flight lifecycle of one player.
+ */
 @Data
 public class FJ2RPlayer {
 
@@ -59,6 +56,12 @@ public class FJ2RPlayer {
     private final ItemTagCodec itemTags;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
+    private final ProtectionGuard protection;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final JetpackParticles particles;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     private final Log log;
 
     private boolean isActive;
@@ -67,8 +70,6 @@ public class FJ2RPlayer {
     private @Nullable Jetpack jetpack;
     @Setter(AccessLevel.PRIVATE)
     private @Nullable BukkitTask burnTask;
-    @Setter(AccessLevel.PRIVATE)
-    private @Nullable BukkitTask particleTask;
     private @Nullable UUID superiorSkyblock2IslandUUID;
     private @Nullable Claim griefPreventionClaim;
 
@@ -83,140 +84,27 @@ public class FJ2RPlayer {
                       @NotNull JavaPlugin plugin,
                       @NotNull YamlConfigRepository configs,
                       @NotNull MessageSink messages,
-                      @NotNull ItemTagCodec itemTags) {
+                      @NotNull ItemTagCodec itemTags,
+                      @NotNull ProtectionGuard protection) {
         this.player = player;
         this.registry = registry;
         this.plugin = plugin;
         this.configs = configs;
         this.messages = messages;
         this.itemTags = itemTags;
+        this.protection = protection;
+        this.particles = new JetpackParticles(plugin, messages);
         this.log = new Log(getClass(), messages);
     }
 
     public boolean isAllowedGriefPrevention() {
         if (jetpack == null) return true;
-        return isAllowedGriefPrevention(jetpack);
-    }
-
-    private boolean isAllowedGriefPrevention(@NotNull Jetpack jetpack) {
-        if (Permissions.isAdminOrOp(player)) return true;
-        val griefPrevention = jetpack.getGriefPrevention();
-        if (griefPrevention == null || !griefPrevention.isEnable() || !GriefPrevention.isActive()) return true;
-        @Nullable val claim = GriefPrevention.get().dataStore.getClaimAt(player.getLocation(),
-                true,
-                true,
-                getGriefPreventionClaim()
-        );
-        if (griefPrevention.isAllowInsideAllClaim()) {
-            if (claim != null) {
-                setGriefPreventionClaim(claim);
-                return true;
-            }
-            messages.send(player, configs.message().getGriefPreventionOutsideClaim());
-            return false;
-        }
-        if (claim == null) {
-            messages.send(player, configs.message().getGriefPreventionOutsideClaim());
-            return false;
-        }
-        if (griefPrevention.isAllowBypassClaim() && Permissions.hasRawPermission(player,
-                jetpack.getPermission(Permissions.PERMISSION_BYPASS_GRIEF_PREVENTION_CLAIM))
-        ) return true;
-        if (!griefPrevention.isOnlyAllowInsideOwnClaim()) {
-            messages.send(player, configs.message().getNoPermission());
-            return false;
-        }
-        if (claim.getOwnerID() != player.getUniqueId()) {
-            messages.send(player, configs.message().getNoPermission());
-            return false;
-        }
-        setGriefPreventionClaim(claim);
-        return true;
+        return protection.allowsGriefPrevention(this, jetpack);
     }
 
     public boolean isAllowedSuperiorSkyblock() {
         if (jetpack == null) return true;
-        return isAllowedSuperiorSkyblock(jetpack);
-    }
-
-    private boolean isAllowedSuperiorSkyblock(@NotNull Jetpack jetpack) {
-        if (!SuperiorSkyblock.isActive() || Permissions.isAdminOrOp(player)) return true;
-        val superiorSkyblock2 = jetpack.getSuperiorSkyblock2();
-        if (superiorSkyblock2 == null || !superiorSkyblock2.isEnable()) return true;
-        // flag check
-        if (superiorSkyblock2.isAllowBypassFlag() && Permissions.hasRawPermission(player,
-                jetpack.getPermission(Permissions.PERMISSION_BYPASS_SUPERIOR_SKYBLOCK_FLAG)
-        )) return true;
-        val island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
-        if (island == null) {
-            messages.send(player, configs.message().getSuperiorSkyblock2OutsideIsland());
-            return true;
-        }
-        if (!island.hasSettingsEnabled(IslandFlag.getByName(SuperiorSkyblock.FLAG_PRIVILEGE))) {
-            messages.send(player, configs.message().getSuperiorSkyblock2NoFlag());
-            return false;
-        }
-        // privilege check
-        if (superiorSkyblock2.isAllowBypassPrivilege() && Permissions.hasRawPermission(player,
-                jetpack.getPermission(Permissions.PERMISSION_BYPASS_SUPERIOR_SKYBLOCK_PRIVILEGE)
-        )) return true;
-        val hasPerm = island.hasPermission(player, IslandPrivilege.getByName(SuperiorSkyblock.FLAG_PRIVILEGE));
-        if (!hasPerm)
-            messages.send(player, configs.message().getSuperiorSkyblock2NoPermission());
-        if (hasPerm)
-            setSuperiorSkyblock2IslandUUID(island.getUniqueId());
-        return hasPerm;
-    }
-
-    private void particleAction(Object obj) {
-        if (jetpack == null || jetpack.getParticle() == null) return;
-        if (!isActive() || !player.isFlying() || ((LivingEntity) player).isOnGround()) return;
-
-        val location = player.getLocation();
-        if (Version.getServerVersion() <= 8 && obj instanceof Effect effect) {
-            player.getWorld().playEffect(
-                    location.add(0.0, 0.8, 0.0),
-                    effect,
-                    0
-            );
-            return;
-        }
-        if (!(obj instanceof Particle particle)) return;
-        val newZ = ((Double) (0.1 *
-                sin(Math.toRadians(((Float) (player.getLocation().getYaw() + 270.0f)).doubleValue()))
-        )).floatValue();
-        player.getWorld().spawnParticle(
-                particle,
-                location.getX() + newZ,
-                location.getY() + 0.8,
-                location.getZ() + newZ,
-                jetpack.getParticle().getAmount(),
-                0.0,
-                -0.2,
-                0.0
-        );
-    }
-
-    private void startParticle() {
-        // start particle
-        log.log("starting particle effect");
-        if (jetpack == null || jetpack.getParticle() == null || !jetpack.getParticle().isEnable()) return;
-        val effectName = jetpack.getParticle().getEffect().toUpperCase().trim();
-        val effect = Catcher.create(() ->
-                Version.getServerVersion() > 8 ? Particle.valueOf(effectName) : Effect.valueOf(effectName)
-        ).onFailure(error -> {
-            log.log("&cInvalid particle effect name: %s - details: %s", jetpack.getParticle().getEffect(), error);
-        }).getOrDefault(Version.getServerVersion() > 8 ? Particle.CLOUD : Effect.SMOKE);
-        log.log("creating task for particle effect");
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, task -> {
-            if (particleTask == null) particleTask = task;
-            if (!isActive()) {
-                task.cancel();
-                return;
-            }
-            particleAction(effect);
-            }, 0L, jetpack.getParticle().getDelay()
-        );
+        return protection.allowsSuperiorSkyblock(this, jetpack);
     }
 
     @SneakyThrows
@@ -264,60 +152,56 @@ public class FJ2RPlayer {
         });
     }
 
-    public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel) {
+    public @NotNull FlightCheck isJetpack(@Nullable ItemStack stack, boolean consumeFuel) {
         return isJetpack(stack, consumeFuel, false);
     }
 
-    public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
-        if (stack == null || stack.getType() == Material.AIR) return false;
+    /**
+     * Can the player fly with this item, and charge the fuel of one tick?
+     *
+     * @return the refusal reason, or {@link FlightCheck#ALLOWED}; side effects (fuel, item tags,
+     * messages, worn-armor rewrite) only happen when allowed
+     */
+    public @NotNull FlightCheck isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
+        if (stack == null || stack.getType() == Material.AIR) return FlightCheck.NOT_A_JETPACK;
 
-        val jetpackId = itemTags.getJetpackID(stack, "");
-        val jetpack = configs.jetpacks().get(jetpackId);
-        if (jetpack == null) return false;
+        val jetpack = configs.jetpacks().get(itemTags.getJetpackID(stack, ""));
+        if (jetpack == null) return FlightCheck.NOT_A_JETPACK;
 
-        if (stack.getType() != jetpack.getItem()) return false;
-        if (this.jetpack != null && isActive() && !jetpack.getId().equals(this.jetpack.getId())) return false;
+        if (stack.getType() != jetpack.getItem()) return FlightCheck.NOT_A_JETPACK;
+        if (this.jetpack != null && isActive() && !jetpack.getId().equals(this.jetpack.getId())) return FlightCheck.NOT_A_JETPACK;
 
-        if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
-            NoPermissionLvlException.send();
+        if (!Permissions.hasRawPermission(player, jetpack.getPermission())) return FlightCheck.NO_PERMISSION;
 
         val isWorldBlocked = jetpack.getBlockedWorlds().stream()
                 .anyMatch(world -> player.getWorld().getName().equals(world));
         if (isWorldBlocked) {
             messages.send(player, configs.message().getBlockedWorlds());
-            IMessageException.send();
+            return FlightCheck.BLOCKED;
         }
 
-        if (!isAllowedSuperiorSkyblock())
-            IMessageException.send();
-
-        if (!isAllowedGriefPrevention())
-            IMessageException.send();
-
+        if (!protection.allowsSuperiorSkyblock(this, jetpack)) return FlightCheck.BLOCKED;
+        if (!protection.allowsGriefPrevention(this, jetpack)) return FlightCheck.BLOCKED;
 
         var fuel = itemTags.getFuelValue(stack);
         assert fuel != null;
-        val canBypassCost = Permissions.hasRawPermission(player,
-                jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SUFFIX
-        );
-        if (!canBypassCost && fuel < jetpack.getFuel().getCost()) {
-            ItemFactory.updateDisplayItem(jetpack, stack, fuel);
-            onOutOfFuel();
-            IMessageException.send();
-        }
-        if (!canBypassCost)
-            fuel -= jetpack.getFuel().getCost();
 
-        val canBypassSprintCost = Permissions.hasRawPermission(player,
-                jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SPRINT_SUFFIX
+        val settlement = FuelPolicy.settle(
+                fuel,
+                jetpack.getFuel().getCost(),
+                jetpack.getFuel().getSprintCost(),
+                Permissions.hasRawPermission(player, jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SUFFIX),
+                Permissions.hasRawPermission(player, jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SPRINT_SUFFIX),
+                player.isSprinting(),
+                jetpack.getFuel().getWarnRunOutBelow()
         );
-        if (!canBypassSprintCost && player.isSprinting() && fuel < jetpack.getFuel().getSprintCost()) {
-            ItemFactory.updateDisplayItem(jetpack, stack, fuel);
+
+        if (settlement.stop() != FuelStop.NONE) {
+            ItemFactory.updateDisplayItem(jetpack, stack, settlement.fuel());
             onOutOfFuel();
-            IMessageException.send();
+            return FlightCheck.BLOCKED;
         }
-        if (!canBypassSprintCost && player.isSprinting())
-            fuel -= jetpack.getFuel().getSprintCost();
+        fuel = settlement.fuel();
 
         if (updateCurrentJetpack)
             setJetpack(jetpack);
@@ -327,10 +211,10 @@ public class FJ2RPlayer {
             stack = itemTags.setActiveJetpack(stack, jetpackUniqueId);
             @NotNull ItemStack finalArmor = stack;
             updateActiveJetpackArmorEquipment(item -> finalArmor);
-            return true;
+            return FlightCheck.ALLOWED;
         }
 
-        if (jetpack.getFuel().getWarnRunOutBelow() != -1 && fuel <= jetpack.getFuel().getWarnRunOutBelow())
+        if (settlement.warn())
             messages.send(player,
                     configs.message().getWarnRunOutBelow().replace(Placeholder.AMOUNT, String.valueOf(fuel))
             );
@@ -339,33 +223,44 @@ public class FJ2RPlayer {
         stack = itemTags.setFuelValue(stack, fuel);
         @NotNull ItemStack finalArmor = stack;
         updateActiveJetpackArmorEquipment(item -> finalArmor);
-        return true;
+        return FlightCheck.ALLOWED;
     }
 
+    /**
+     * Charge one tick and decide whether the flight continues.
+     *
+     * @return {@link FlightCheck#ALLOWED} to keep flying, otherwise the refusal reason
+     */
     @Contract(pure = true)
-    private void burnAction() {
+    private @NotNull FlightCheck burnAction() {
         assert jetpack != null;
 
         if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
-            NoPermissionLvlException.send();
+            return FlightCheck.NO_PERMISSION;
 
-        if (!starting && ((LivingEntity) player).isOnGround() && !player.isFlying()) return;
+        if (!starting && ((LivingEntity) player).isOnGround() && !player.isFlying()) return FlightCheck.ALLOWED;
 
         if (jetpack != null && jetpack.isRunInOffHandOnly()) {
             val offHandItem = player.getInventory().getItemInOffHand();
-            if (!isJetpack(offHandItem, !starting)) {
+            val check = isJetpack(offHandItem, !starting);
+            if (check == FlightCheck.NO_PERMISSION || check == FlightCheck.BLOCKED) return check;
+            if (check == FlightCheck.NOT_A_JETPACK) {
                 turnOff();
                 messages.send(player, configs.message().getDetached());
             }
-            return;
+            return FlightCheck.ALLOWED;
         }
 
         val equipment = player.getEquipment();
         assert equipment != null;
-        for (@Nullable ItemStack armor : equipment.getArmorContents())
-            if (isJetpack(armor, !starting)) return;
+        for (@Nullable ItemStack armor : equipment.getArmorContents()) {
+            val check = isJetpack(armor, !starting);
+            if (check == FlightCheck.ALLOWED) return FlightCheck.ALLOWED;
+            if (check != FlightCheck.NOT_A_JETPACK) return check;
+        }
 
         turnOffDetached();
+        return FlightCheck.ALLOWED;
     }
 
     /**
@@ -385,24 +280,24 @@ public class FJ2RPlayer {
                 bukkitTask.cancel();
                 return;
             }
-            Catcher.createVoid(this::burnAction).onSuccess(nothing -> {
+            Catcher.create(this::burnAction).onSuccess(check -> {
+                if (check == FlightCheck.NO_PERMISSION) {
+                    messages.send(player, configs.message().getNoPermission());
+                    turnOff();
+                    return;
+                }
+                if (check == FlightCheck.BLOCKED) {
+                    turnOff();
+                    return;
+                }
                 if (!starting) return;
                 setActive(true);
                 player.setAllowFlight(true);
                 player.setFlySpeed(jetpack.getSpeed() / 10.0f);
                 messages.send(player, configs.message().getTurnOn());
 
-                startParticle();
+                particles.start(this);
             }).onFailure(error -> {
-                if (error instanceof IMessageException) {
-                    turnOff();
-                    return;
-                }
-                if (error instanceof NoPermissionLvlException) {
-                    messages.send(player, configs.message().getNoPermission());
-                    turnOff();
-                    return;
-                }
                 turnOff(true, false, false, false);
                 log.debug("Error: %s", error);
             }).onCompleted(() -> {
@@ -439,9 +334,7 @@ public class FJ2RPlayer {
         if (burnTask != null)
             burnTask.cancel();
         burnTask = null;
-        if (particleTask != null)
-            particleTask.cancel();
-        particleTask = null;
+        particles.stop();
         registry.remove(player);
         griefPreventionClaim = null;
         superiorSkyblock2IslandUUID = null;

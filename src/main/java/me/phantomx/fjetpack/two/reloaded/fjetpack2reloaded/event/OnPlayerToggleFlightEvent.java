@@ -2,6 +2,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +22,9 @@ public class OnPlayerToggleFlightEvent {
         if (!fj2RPlayer.isActive()) return;
         if (fj2RPlayer.getJetpack() != null && fj2RPlayer.getJetpack().isRunInOffHandOnly()) {
             val offHandItem = e.getPlayer().getInventory().getItemInOffHand();
-            if (!fj2RPlayer.isJetpack(offHandItem, false)) fj2RPlayer.turnOffDetached();
+            val check = fj2RPlayer.isJetpack(offHandItem, false);
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.send();
+            if (check == FlightCheck.NOT_A_JETPACK) fj2RPlayer.turnOffDetached();
             return;
         }
         AtomicBoolean jetpackExist = new AtomicBoolean(false);

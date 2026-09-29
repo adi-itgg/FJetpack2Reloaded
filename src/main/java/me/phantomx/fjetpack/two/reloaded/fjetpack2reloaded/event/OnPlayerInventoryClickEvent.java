@@ -3,6 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 import lombok.Getter;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
@@ -96,10 +97,13 @@ public class OnPlayerInventoryClickEvent {
         if (fj2RPlayer.isActive() && fj2RPlayer.getJetpack() != null && fj2RPlayer.getJetpack().isRunInOffHandOnly()) {
             if (slotItem.getType() == Material.AIR || e.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
             val offHandItem = fj2RPlayer.getPlayer().getInventory().getItemInOffHand();
-            if (!fj2RPlayer.isJetpack(offHandItem, false)) {
+            val check = fj2RPlayer.isJetpack(offHandItem, false);
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.send();
+            if (check == FlightCheck.NOT_A_JETPACK) {
                 fj2RPlayer.turnOffDetached();
                 return;
             }
+            if (check != FlightCheck.ALLOWED) return;
             if (!offHandItem.isSimilar(slotItem)) return;
             fj2RPlayer.turnOffDetached();
             return;

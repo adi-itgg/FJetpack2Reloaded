@@ -1,6 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data;
 
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
@@ -27,22 +28,25 @@ public class PlayerRegistry {
     private final YamlConfigRepository configs;
     private final MessageSink messages;
     private final ItemTagCodec itemTags;
+    private final ProtectionGuard protection;
 
     public PlayerRegistry(@NotNull JavaPlugin plugin,
                           @NotNull YamlConfigRepository configs,
                           @NotNull MessageSink messages,
-                          @NotNull ItemTagCodec itemTags) {
+                          @NotNull ItemTagCodec itemTags,
+                          @NotNull ProtectionGuard protection) {
         this.plugin = plugin;
         this.configs = configs;
         this.messages = messages;
         this.itemTags = itemTags;
+        this.protection = protection;
     }
 
     /** State of the player, created on first use. */
     public @NotNull FJ2RPlayer of(@NotNull Player player) {
         var fj2RPlayer = players.get(player.getUniqueId());
         if (fj2RPlayer == null) {
-            fj2RPlayer = new FJ2RPlayer(player, this, plugin, configs, messages, itemTags);
+            fj2RPlayer = new FJ2RPlayer(player, this, plugin, configs, messages, itemTags, protection);
             players.put(player.getUniqueId(), fj2RPlayer);
         }
         fj2RPlayer.setPlayer(player);

@@ -1,6 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.CommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.FJ2RCommandExecutor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
@@ -49,7 +50,8 @@ public class FJetpack2Reloaded extends JavaPlugin {
         this.log = new Log(getClass(), messages);
         this.itemTags = new ItemTagCodec(this);
         this.items = new ItemFactory(configs, itemTags, messages);
-        this.players = new PlayerRegistry(this, configs, messages, itemTags);
+        this.players = new PlayerRegistry(this, configs, messages, itemTags,
+                new ProtectionGuard(configs, messages));
         this.updateChecker = new UpdateChecker(this, messages);
         this.commandExecutor = new FJ2RCommandExecutor(this, configs, messages, items, updateChecker);
         this.tabCompleter = new CommandTabCompleter(configs, messages);
