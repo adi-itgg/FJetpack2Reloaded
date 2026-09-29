@@ -137,8 +137,8 @@ public class FlightSession {
         messages.send(player, configs.message().getOutOfFuel());
         if (jetpack == null || jetpack.getOnEmptyFuel() == ItemDisposition.NONE) return;
         if (Permissions.hasRawPermission(player, jetpack.getPermission(Permissions.PERMISSION_KEEP_ON_EMPTY_SUFFIX))) return;
-        // NOTE: pre-existing behaviour - the outcome uses OnDeath although this is the out-of-fuel path.
-        updateActiveJetpackArmorEquipment(item -> switch (jetpack.getOnDeath()) {
+        // out-of-fuel disposition, per jetpack.yml OnEmptyFuel (was: OnDeath - fixed)
+        updateActiveJetpackArmorEquipment(item -> switch (jetpack.getOnEmptyFuel()) {
             case NONE -> item;
             case REMOVE -> {
                 messages.send(player, configs.message().getOnEmptyFuelRemoved());
@@ -300,7 +300,7 @@ public class FlightSession {
 
                 particles.start(this);
             }).onFailure(error -> {
-                turnOff(true, false, false, false);
+                turnOff(true);
                 log.debug("Error: %s", error);
             }).onCompleted(() -> {
                 if (starting)
@@ -320,15 +320,29 @@ public class FlightSession {
     }
 
     public void turnOff() {
-        turnOff(false, false ,false, false);
+        turnOff(false);
     }
 
+    /**
+     * @param sendMsg report the turn off to the player
+     */
     public void turnOff(boolean sendMsg) {
-        turnOff(sendMsg, false,false, false);
+        if (jetpack == null || !isActive()) return;
+        releaseFlight();
+
+        if (sendMsg)
+            messages.send(player, configs.message().getTurnOff());
+        jetpack = null;
     }
 
-    public void turnOff(boolean sendMsg, boolean onDied, boolean onEmptyFuel, boolean unloadedPlugin) {
+    /** Plugin unload: the jetpack stays equipped on the player so it survives the restart. */
+    public void turnOffUnloaded() {
         if (jetpack == null || !isActive()) return;
+        releaseFlight();
+        messages.send(player, "&cThis plugin has been unloaded!");
+    }
+
+    private void releaseFlight() {
         starting = false;
         setActive(false);
         player.setAllowFlight(false);
@@ -340,35 +354,6 @@ public class FlightSession {
         registry.remove(player);
         griefPreventionClaim = null;
         superiorSkyblock2IslandUUID = null;
-
-        if (onDied) {
-            val msg = switch (jetpack.getOnDeath()) {
-                case NONE -> null;
-                case DROP -> configs.message().getOnDeathDropped();
-                case REMOVE -> configs.message().getOnDeathRemoved();
-            };
-            if (msg != null)
-                messages.send(player, msg);
-            return;
-        }
-        if (onEmptyFuel) {
-            val msg = switch (jetpack.getOnEmptyFuel()) {
-                case NONE -> null;
-                case DROP -> configs.message().getOnEmptyFuelDropped();
-                case REMOVE -> configs.message().getOnEmptyFuelRemoved();
-            };
-            if (msg != null)
-                messages.send(player, msg);
-            return;
-        }
-        if (unloadedPlugin) {
-            messages.send(player, "&cThis plugin has been unloaded!");
-            return;
-        }
-
-        if (sendMsg)
-            messages.send(player, configs.message().getTurnOff());
-        jetpack = null;
     }
 
 }

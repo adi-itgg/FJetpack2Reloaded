@@ -65,7 +65,7 @@ public class PlayerRegistry {
         val copy = players.values().toArray(new FlightSession[0]);
         players.clear();
         for (FlightSession fj2RPlayer : copy)
-            fj2RPlayer.turnOff(false, false, false, true);
+            fj2RPlayer.turnOffUnloaded();
     }
 
 }
