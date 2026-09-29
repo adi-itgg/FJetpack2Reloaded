@@ -1,7 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping;
 
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.CustomFuel;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 

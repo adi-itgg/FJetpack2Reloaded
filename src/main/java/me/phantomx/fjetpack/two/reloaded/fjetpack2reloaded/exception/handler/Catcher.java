@@ -23,10 +23,10 @@ public class Catcher<T> {
         return job;
     }
 
-    public static @NotNull Catcher<Nothing> createVoid(@NotNull ActionVoidHandler action) {
+    public static @NotNull Catcher<Void> createVoid(@NotNull ActionVoidHandler action) {
         return Catcher.create(() -> {
             action.action();
-            return Nothing.nothing();
+            return null;
         });
     }
 

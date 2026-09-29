@@ -2,7 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listene
 
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Permissions;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.UpdateChecker;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;

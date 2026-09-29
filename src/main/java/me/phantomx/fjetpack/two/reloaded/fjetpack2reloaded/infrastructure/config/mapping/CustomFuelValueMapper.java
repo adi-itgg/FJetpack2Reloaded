@@ -14,7 +14,7 @@ public final class CustomFuelValueMapper implements ConfigValueMapper {
 
     @Override
     public boolean map(@NotNull Object instance, @NotNull Field field, @NotNull Object value, @NotNull MappingContext context) throws Exception {
-        if (!field.getType().isAssignableFrom(me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.CustomFuel.class))
+        if (!field.getType().isAssignableFrom(me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel.class))
             return false;
         if (!(value instanceof String id)) return false;
 

@@ -2,7 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.confi
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.CustomFuel;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.ColorText;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;

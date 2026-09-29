@@ -1,7 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;

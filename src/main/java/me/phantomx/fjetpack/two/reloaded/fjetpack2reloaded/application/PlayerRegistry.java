@@ -3,8 +3,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,28 +27,34 @@ public class PlayerRegistry {
     private final Map<UUID, FlightSession> players = new WeakHashMap<>();
 
     private final JavaPlugin plugin;
-    private final YamlConfigRepository configs;
+    private final ConfigRepository configs;
     private final MessageSink messages;
-    private final ItemTagCodec itemTags;
+    private final ItemTags itemTags;
     private final ProtectionGuard protection;
+    private final ItemFactory items;
+    private final ServerVersion version;
 
     public PlayerRegistry(@NotNull JavaPlugin plugin,
-                          @NotNull YamlConfigRepository configs,
+                          @NotNull ConfigRepository configs,
                           @NotNull MessageSink messages,
-                          @NotNull ItemTagCodec itemTags,
-                          @NotNull ProtectionGuard protection) {
+                          @NotNull ItemTags itemTags,
+                          @NotNull ProtectionGuard protection,
+                          @NotNull ItemFactory items,
+                          @NotNull ServerVersion version) {
         this.plugin = plugin;
         this.configs = configs;
         this.messages = messages;
         this.itemTags = itemTags;
         this.protection = protection;
+        this.items = items;
+        this.version = version;
     }
 
     /** State of the player, created on first use. */
     public @NotNull FlightSession of(@NotNull Player player) {
         var fj2RPlayer = players.get(player.getUniqueId());
         if (fj2RPlayer == null) {
-            fj2RPlayer = new FlightSession(player, this, plugin, configs, messages, itemTags, protection);
+            fj2RPlayer = new FlightSession(player, this, plugin, configs, messages, itemTags, protection, items, version);
             players.put(player.getUniqueId(), fj2RPlayer);
         }
         fj2RPlayer.setPlayer(player);

@@ -2,7 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listene
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -13,14 +13,16 @@ import java.util.Arrays;
 public class OnPlayerDamagedEvent {
 
     private final ItemFactory items;
+    private final ServerVersion version;
 
-    public OnPlayerDamagedEvent(@NotNull ItemFactory items) {
+    public OnPlayerDamagedEvent(@NotNull ItemFactory items, @NotNull ServerVersion version) {
         this.items = items;
+        this.version = version;
     }
 
     @SuppressWarnings("deprecation")
     public void onDamaged(@NotNull EntityDamageEvent e) {
-        if (Version.getServerVersion() > 16 || !(e.getEntity() instanceof Player player)) return;
+        if (version.getServerVersion() > 16 || !(e.getEntity() instanceof Player player)) return;
 
         val equipment = player.getEquipment();
         if (equipment == null) return;

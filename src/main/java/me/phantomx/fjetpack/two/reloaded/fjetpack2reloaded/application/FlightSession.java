@@ -1,24 +1,17 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.*;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackParticles;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Jetpack;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.fuel.FuelPolicy;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.fuel.FuelStop;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.ItemDisposition;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.ActionResultReturnHandler;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Jetpack;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Placeholder;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Version;
-import me.ryanhamshire.GriefPrevention.Claim;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.ItemDisposition;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.fuel.FuelPolicy;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.fuel.FuelStop;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.ActionResultReturnHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -31,10 +24,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 /**
  * Live state and flight lifecycle of one player.
+ * <p>
+ * Two steps, kept apart on purpose: {@link #preconditions} answers "may this stack be used at all",
+ * {@link #isJetpack} then charges the fuel of one tick and performs the side effects.
  */
 @Data
 public class FlightSession {
@@ -47,16 +42,22 @@ public class FlightSession {
     private final JavaPlugin plugin;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private final YamlConfigRepository configs;
+    private final ConfigRepository configs;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private final MessageSink messages;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private final ItemTagCodec itemTags;
+    private final ItemTags itemTags;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private final ProtectionGuard protection;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final ItemFactory items;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final ServerVersion version;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private final JetpackParticles particles;
@@ -70,8 +71,6 @@ public class FlightSession {
     private @Nullable Jetpack jetpack;
     @Setter(AccessLevel.PRIVATE)
     private @Nullable BukkitTask burnTask;
-    private @Nullable UUID superiorSkyblock2IslandUUID;
-    private @Nullable Claim griefPreventionClaim;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
@@ -80,12 +79,14 @@ public class FlightSession {
     private int jetpackUniqueId;
 
     public FlightSession(@NotNull Player player,
-                      @NotNull PlayerRegistry registry,
-                      @NotNull JavaPlugin plugin,
-                      @NotNull YamlConfigRepository configs,
-                      @NotNull MessageSink messages,
-                      @NotNull ItemTagCodec itemTags,
-                      @NotNull ProtectionGuard protection) {
+                         @NotNull PlayerRegistry registry,
+                         @NotNull JavaPlugin plugin,
+                         @NotNull ConfigRepository configs,
+                         @NotNull MessageSink messages,
+                         @NotNull ItemTags itemTags,
+                         @NotNull ProtectionGuard protection,
+                         @NotNull ItemFactory items,
+                         @NotNull ServerVersion version) {
         this.player = player;
         this.registry = registry;
         this.plugin = plugin;
@@ -93,18 +94,20 @@ public class FlightSession {
         this.messages = messages;
         this.itemTags = itemTags;
         this.protection = protection;
-        this.particles = new JetpackParticles(plugin, messages);
+        this.items = items;
+        this.version = version;
+        this.particles = new JetpackParticles(plugin, version, messages);
         this.log = new Log(getClass(), messages);
     }
 
     public boolean isAllowedGriefPrevention() {
         if (jetpack == null) return true;
-        return protection.allowsGriefPrevention(this, jetpack);
+        return protection.allowsGriefPrevention(player, jetpack);
     }
 
     public boolean isAllowedSuperiorSkyblock() {
         if (jetpack == null) return true;
-        return protection.allowsSuperiorSkyblock(this, jetpack);
+        return protection.allowsSuperiorSkyblock(player, jetpack);
     }
 
     @SneakyThrows
@@ -118,7 +121,7 @@ public class FlightSession {
         while (iterator.hasNext()) {
             var item = iterator.next();
             if (item != null && itemTags.isActiveJetpack(item, jetpackUniqueId)) {
-                if (Version.getServerVersion() > 16) {
+                if (version.getServerVersion() > 16) {
                     val itemMeta = item.getItemMeta();
                     if (itemMeta != null && jetpack != null) {
                         itemMeta.setUnbreakable(jetpack.isUnbreakable());
@@ -163,25 +166,10 @@ public class FlightSession {
      * messages, worn-armor rewrite) only happen when allowed
      */
     public @NotNull FlightCheck isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
-        if (stack == null || stack.getType() == Material.AIR) return FlightCheck.NOT_A_JETPACK;
-
-        val jetpack = configs.jetpacks().get(itemTags.getJetpackID(stack, ""));
-        if (jetpack == null) return FlightCheck.NOT_A_JETPACK;
-
-        if (stack.getType() != jetpack.getItem()) return FlightCheck.NOT_A_JETPACK;
-        if (this.jetpack != null && isActive() && !jetpack.getId().equals(this.jetpack.getId())) return FlightCheck.NOT_A_JETPACK;
-
-        if (!Permissions.hasRawPermission(player, jetpack.getPermission())) return FlightCheck.NO_PERMISSION;
-
-        val isWorldBlocked = jetpack.getBlockedWorlds().stream()
-                .anyMatch(world -> player.getWorld().getName().equals(world));
-        if (isWorldBlocked) {
-            messages.send(player, configs.message().getBlockedWorlds());
-            return FlightCheck.BLOCKED;
-        }
-
-        if (!protection.allowsSuperiorSkyblock(this, jetpack)) return FlightCheck.BLOCKED;
-        if (!protection.allowsGriefPrevention(this, jetpack)) return FlightCheck.BLOCKED;
+        val pre = preconditions(stack);
+        if (pre.check() != FlightCheck.ALLOWED) return pre.check();
+        val jetpack = pre.jetpack();
+        assert jetpack != null;
 
         var fuel = itemTags.getFuelValue(stack);
         // item without a fuel tag: not a usable jetpack, never destroy it
@@ -198,7 +186,7 @@ public class FlightSession {
         );
 
         if (settlement.stop() != FuelStop.NONE) {
-            ItemFactory.updateDisplayItem(jetpack, stack, settlement.fuel());
+            items.updateDisplayItem(jetpack, stack, settlement.fuel());
             onOutOfFuel();
             return FlightCheck.BLOCKED;
         }
@@ -220,11 +208,42 @@ public class FlightSession {
                     configs.message().getWarnRunOutBelow().replace(Placeholder.AMOUNT, String.valueOf(fuel))
             );
 
-        ItemFactory.updateDisplayItem(jetpack, stack, fuel);
+        items.updateDisplayItem(jetpack, stack, fuel);
         stack = itemTags.setFuelValue(stack, fuel);
         @NotNull ItemStack finalArmor = stack;
         updateActiveJetpackArmorEquipment(item -> finalArmor);
         return FlightCheck.ALLOWED;
+    }
+
+    /**
+     * May this stack be used as a jetpack by this player right now, and which jetpack is it?
+     * <p>
+     * Every branch that refuses also tells the player why, so the caller only has to act on the
+     * returned check.
+     */
+    private @NotNull Precondition preconditions(@Nullable ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR) return Precondition.refused(FlightCheck.NOT_A_JETPACK);
+
+        val jetpack = configs.jetpacks().get(itemTags.getJetpackID(stack, ""));
+        if (jetpack == null) return Precondition.refused(FlightCheck.NOT_A_JETPACK);
+        if (stack.getType() != jetpack.getItem()) return Precondition.refused(FlightCheck.NOT_A_JETPACK);
+        if (this.jetpack != null && isActive() && !jetpack.getId().equals(this.jetpack.getId()))
+            return Precondition.refused(FlightCheck.NOT_A_JETPACK);
+
+        if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
+            return Precondition.refused(FlightCheck.NO_PERMISSION);
+
+        val isWorldBlocked = jetpack.getBlockedWorlds().stream()
+                .anyMatch(world -> player.getWorld().getName().equals(world));
+        if (isWorldBlocked) {
+            messages.send(player, configs.message().getBlockedWorlds());
+            return Precondition.refused(FlightCheck.BLOCKED);
+        }
+
+        if (!protection.allowsSuperiorSkyblock(player, jetpack)) return Precondition.refused(FlightCheck.BLOCKED);
+        if (!protection.allowsGriefPrevention(player, jetpack)) return Precondition.refused(FlightCheck.BLOCKED);
+
+        return Precondition.allowed(jetpack);
     }
 
     /**
@@ -352,8 +371,19 @@ public class FlightSession {
         burnTask = null;
         particles.stop();
         registry.remove(player);
-        griefPreventionClaim = null;
-        superiorSkyblock2IslandUUID = null;
+    }
+
+    /** Outcome of {@link #preconditions}: either a refusal, or the jetpack the stack turned out to be. */
+    private record Precondition(@NotNull FlightCheck check, @Nullable Jetpack jetpack) {
+
+        static @NotNull Precondition refused(@NotNull FlightCheck check) {
+            return new Precondition(check, null);
+        }
+
+        static @NotNull Precondition allowed(@NotNull Jetpack jetpack) {
+            return new Precondition(FlightCheck.ALLOWED, jetpack);
+        }
+
     }
 
 }

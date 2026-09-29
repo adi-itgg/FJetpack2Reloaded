@@ -1,4 +1,4 @@
-package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util;
+package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

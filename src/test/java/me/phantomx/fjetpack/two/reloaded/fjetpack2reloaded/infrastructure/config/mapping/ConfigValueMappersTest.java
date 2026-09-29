@@ -2,8 +2,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.confi
 
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.ItemDisposition;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.SectionPath;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.CustomFuel;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.SectionPath;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;

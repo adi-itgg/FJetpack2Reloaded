@@ -5,7 +5,7 @@ import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.HelpText;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.PlayerTarget;
@@ -25,17 +25,20 @@ public class SetFuelCommandHandler implements CommandHandler {
     private final ItemFactory items;
     private final PlayerTarget targets;
     private final HelpText helpText;
+    private final ServerVersion version;
 
     public SetFuelCommandHandler(@NotNull Messages messages,
                                  @NotNull YamlConfigRepository configs,
                                  @NotNull ItemFactory items,
                                  @NotNull PlayerTarget targets,
-                                 @NotNull HelpText helpText) {
+                                 @NotNull HelpText helpText,
+                             @NotNull ServerVersion version) {
         this.messages = messages;
         this.configs = configs;
         this.items = items;
         this.targets = targets;
         this.helpText = helpText;
+        this.version = version;
     }
 
     @Override
@@ -73,7 +76,7 @@ public class SetFuelCommandHandler implements CommandHandler {
 
         items.setItemAsJetpack(sender, item, jetpackId, fuelAmount)
                 .onSuccess(result -> {
-                    if (Version.getServerVersion() > 11)
+                    if (version.getServerVersion() > 11)
                         player.getInventory().setItemInMainHand(result);
                     else
                         player.setItemInHand(result);

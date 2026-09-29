@@ -1,4 +1,4 @@
-package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging;
+package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
@@ -6,12 +6,17 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Tagged output for one class. The debug flag is read once per instance, on construction: a static
+ * initializer that talks to the server would run at an arbitrary time, and a static cache would be
+ * invisible to a test. The check also survives running without a server (unit tests), where debug
+ * logging is simply off.
+ */
 public class Log {
-
-    private static Boolean debug;
 
     private final String tag;
     private final MessageSink messages;
+    private final boolean debug;
 
     public Log(@NotNull Class<?> clazz, @NotNull MessageSink messages) {
         this(clazz.getSimpleName(), messages);
@@ -20,31 +25,17 @@ public class Log {
     public Log(@NotNull String tag, @NotNull MessageSink messages) {
         this.tag = tag;
         this.messages = messages;
-    }
-
-    /**
-     * Read once, on first use. A static initializer that talks to the server would run at an
-     * arbitrary time; here the check also survives running without a server (unit tests), where
-     * debug logging is simply off.
-     */
-    private static boolean isDebug() {
-        if (debug == null) {
-            val server = Bukkit.getServer();
-            debug = server != null && server.getMotd().contains("[DEV-FJ2R-DEBUG]");
-        }
-        return debug;
+        val server = Bukkit.getServer();
+        this.debug = server != null && server.getMotd().contains("[DEV-FJ2R-DEBUG]");
     }
 
     public void log(@Nullable Object message, Object... args) {
-        if (!isDebug()) return;
+        if (!debug) return;
         if (message instanceof String text) {
             messages.sendToConsole(text, args);
             return;
         }
-        val sb = new StringBuilder();
-        sb.append(message);
-        messages.sendToConsole(sb.toString(), args);
-        sb.setLength(0);
+        messages.sendToConsole(String.valueOf(message), args);
     }
 
     public void debug(@Nullable Object message, Object... args) {

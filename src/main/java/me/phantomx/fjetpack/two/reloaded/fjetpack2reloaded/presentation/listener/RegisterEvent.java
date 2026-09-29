@@ -4,12 +4,13 @@ import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackRefill;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.UpdateChecker;
 import org.bukkit.event.EventHandler;
@@ -46,7 +47,8 @@ public class RegisterEvent implements Listener {
                          @NotNull ItemFactory items,
                          @NotNull ItemTagCodec itemTags,
                          @NotNull Messages messages,
-                         @NotNull UpdateChecker updateChecker) {
+                         @NotNull UpdateChecker updateChecker,
+                         @NotNull ServerVersion version) {
         this.messages = messages;
         this.configs = configs;
         this.log = new Log(getClass(), messages);
@@ -54,8 +56,8 @@ public class RegisterEvent implements Listener {
         this.onCrouch = new OnPlayerCrouchEvent(players, items);
         this.onToggleFlight = new OnPlayerToggleFlightEvent(players);
         this.onDied = new OnPlayerDiedEvent(players, configs, messages);
-        this.onInventoryClick = new OnPlayerInventoryClickEvent(players, itemTags, new JetpackRefill(configs, itemTags), messages);
-        this.onDamaged = new OnPlayerDamagedEvent(items);
+        this.onInventoryClick = new OnPlayerInventoryClickEvent(players, itemTags, new JetpackRefill(configs, itemTags, items), messages);
+        this.onDamaged = new OnPlayerDamagedEvent(items, version);
         this.onJoinLeave = new OnPlayerJoinLeaveEvent(players, configs, updateChecker);
     }
 

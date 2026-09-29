@@ -1,4 +1,4 @@
-package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config;
+package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

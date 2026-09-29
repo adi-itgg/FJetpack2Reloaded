@@ -3,8 +3,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command
 import jakarta.inject.Singleton;
 import lombok.Getter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Permissions;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.CommandCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.Completions;
 import org.bukkit.command.Command;

@@ -1,8 +1,7 @@
-package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto;
+package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.SectionPath;
 
 @Data
 @NoArgsConstructor

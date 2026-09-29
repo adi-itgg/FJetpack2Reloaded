@@ -3,7 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message
 import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Message;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Message;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.ColorText;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.Bukkit;

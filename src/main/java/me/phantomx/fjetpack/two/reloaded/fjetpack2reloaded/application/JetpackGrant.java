@@ -2,9 +2,9 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import jakarta.inject.Singleton;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Placeholder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 public class JetpackGrant {
 
-    private final YamlConfigRepository configs;
-    private final Messages messages;
+    private final ConfigRepository configs;
+    private final MessageSink messages;
     private final ItemFactory items;
 
-    public JetpackGrant(@NotNull YamlConfigRepository configs, @NotNull Messages messages, @NotNull ItemFactory items) {
+    public JetpackGrant(@NotNull ConfigRepository configs, @NotNull MessageSink messages, @NotNull ItemFactory items) {
         this.configs = configs;
         this.messages = messages;
         this.items = items;
@@ -33,18 +33,18 @@ public class JetpackGrant {
             addItemToInventory(targetPlayer, item);
 
             if (sender == targetPlayer) {
-                messages.sendMessage(sender, configs.message().getCmdGetSelf()
+                messages.send(sender, configs.message().getCmdGetSelf()
                         .replace(Placeholder.JETPACK, jetpackId)
                         .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount)));
                 return;
             }
 
-            messages.sendMessage(sender, configs.message().getCmdGiveSuccess()
+            messages.send(sender, configs.message().getCmdGiveSuccess()
                     .replace(Placeholder.JETPACK, jetpackId)
                     .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount))
                     .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
             );
-            messages.sendMessage(targetPlayer, configs.message().getCmdGiveReceived()
+            messages.send(targetPlayer, configs.message().getCmdGiveReceived()
                     .replace(Placeholder.JETPACK, jetpackId)
                     .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount))
                     .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
@@ -60,7 +60,7 @@ public class JetpackGrant {
             addItemToInventory(targetPlayer, item);
 
             if (sender == targetPlayer) {
-                messages.sendMessage(sender, configs.message().getCmdFuelGiveSuccess()
+                messages.send(sender, configs.message().getCmdFuelGiveSuccess()
                         .replace(Placeholder.CUSTOM_FUEL, customFuelId)
                         .replace(Placeholder.AMOUNT, String.valueOf(amount))
                         .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
@@ -69,12 +69,12 @@ public class JetpackGrant {
                 return;
             }
 
-            messages.sendMessage(sender, configs.message().getCmdFuelGiveSuccess()
+            messages.send(sender, configs.message().getCmdFuelGiveSuccess()
                     .replace(Placeholder.CUSTOM_FUEL, customFuelId)
                     .replace(Placeholder.AMOUNT, String.valueOf(amount))
                     .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
             );
-            messages.sendMessage(targetPlayer, configs.message().getCmdFuelGiveReceived()
+            messages.send(targetPlayer, configs.message().getCmdFuelGiveReceived()
                     .replace(Placeholder.CUSTOM_FUEL, customFuelId)
                     .replace(Placeholder.AMOUNT, String.valueOf(amount))
                     .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
@@ -90,7 +90,7 @@ public class JetpackGrant {
         leftovers.forEach((index, itemStack) -> {
             val location = targetPlayer.getLocation();
             targetPlayer.getWorld().dropItemNaturally(location, itemStack);
-            messages.sendMessage(targetPlayer, configs.message().getInventoryFull()
+            messages.send(targetPlayer, configs.message().getInventoryFull()
                     .replace(Placeholder.X, String.valueOf(location.getX()))
                     .replace(Placeholder.Y, String.valueOf(location.getY()))
                     .replace(Placeholder.Z, String.valueOf(location.getZ()))

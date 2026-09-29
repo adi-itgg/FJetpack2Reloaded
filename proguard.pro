@@ -22,9 +22,9 @@
 -keepclassmembers,allowobfuscation class * {
   @org.bukkit.event.EventHandler <methods>;
 }
--keep,allowobfuscation @me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.SectionPath class *
-# Keep config DTO field names: the loader maps YAML keys to fields by reflection.
--keepclassmembernames class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.** { private *; }
+-keep,allowobfuscation @me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.SectionPath class *
+# Keep config record field names: the loader maps YAML keys to fields by reflection.
+-keepclassmembernames class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.** { private *; }
 # Keep enums: config values (NONE/DROP/REMOVE) are resolved by name.
 -keepclassmembers class * extends java.lang.Enum {
     <fields>;

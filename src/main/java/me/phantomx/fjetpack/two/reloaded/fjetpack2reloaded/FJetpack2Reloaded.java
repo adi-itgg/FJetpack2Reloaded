@@ -4,13 +4,12 @@ import io.avaje.inject.BeanScope;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.PluginFactory;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerSupport;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblockEvent;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.CommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommandExecutor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.RegisterEvent;
@@ -52,7 +51,7 @@ public class FJetpack2Reloaded extends JavaPlugin {
         this.tabCompleter = beanScope.get(CommandTabCompleter.class);
 
         val log = new Log(getClass(), messages);
-        val serverSupported = Version.isServerSupport(messages, beanScope.get(ItemTagCodec.class));
+        val serverSupported = beanScope.get(ServerSupport.class).check();
         log.log("is server support: %b", serverSupported);
         if (!serverSupported) {
             closeScope();

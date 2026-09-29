@@ -6,8 +6,16 @@ import io.avaje.inject.Factory;
 import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ClaimLookup;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.IslandLookup;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping.ConfigValueMappers;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.GriefPreventionClaims;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblockIslands;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.CommandCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.NoArgsCommandCompleter;
@@ -19,8 +27,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * <ul>
  *   <li>{@link PluginFactory.Initiator} - the plugin instance is created by Bukkit, so it is handed
  *       to the container at runtime and published here as the {@link JavaPlugin} bean.</li>
- *   <li>{@link MessageSink} - {@link Messages} is both the message service and the output port;
- *       the port is published so infrastructure can depend on it instead of the class.</li>
+ *   <li>the output and lookup ports - the adapter implementing each port is a concrete bean, but the
+ *       use cases depend on the interface, so the port is published here as well.</li>
  * </ul>
  */
 @Factory
@@ -47,6 +55,26 @@ public class PluginFactory {
     @Bean
     MessageSink messageSink(Messages messages) {
         return messages;
+    }
+
+    @Bean
+    ConfigRepository configRepository(YamlConfigRepository repository) {
+        return repository;
+    }
+
+    @Bean
+    ItemTags itemTags(ItemTagCodec codec) {
+        return codec;
+    }
+
+    @Bean
+    ClaimLookup claimLookup(GriefPreventionClaims claims) {
+        return claims;
+    }
+
+    @Bean
+    IslandLookup islandLookup(SuperiorSkyblockIslands islands) {
+        return islands;
     }
 
     /** Built from a static factory, so the generator cannot derive it. */

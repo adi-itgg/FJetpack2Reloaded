@@ -1,19 +1,22 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception;
 
-import lombok.SneakyThrows;
+/**
+ * The sender lacks a permission that the requested operation requires.
+ * <p>
+ * Unchecked on purpose: every thrower is a command or event handler whose entry point already
+ * translates this into a message for the sender, so the caller never has to declare it.
+ */
+public class NoPermissionLvlException extends RuntimeException {
 
-public class NoPermissionLvlException extends Throwable {
+    private static final long serialVersionUID = 1L;
 
-    private static NoPermissionLvlException instance;
-
-    private static NoPermissionLvlException getInstance() {
-        if (instance == null) instance = new NoPermissionLvlException();
-        return instance;
+    public NoPermissionLvlException() {
+        super("missing permission");
     }
 
-    @SneakyThrows
-    public static void send() {
-        throw getInstance();
+    /** Bail out of the current command/event with this signal. */
+    public static void throwNow() {
+        throw new NoPermissionLvlException();
     }
 
 }

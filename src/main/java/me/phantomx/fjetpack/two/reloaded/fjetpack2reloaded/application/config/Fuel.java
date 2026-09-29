@@ -1,9 +1,8 @@
-package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto;
+package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.SectionPath;
 import org.bukkit.Material;
 import org.jetbrains.annotations.Nullable;
 

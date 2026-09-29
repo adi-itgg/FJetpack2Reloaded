@@ -1,11 +1,9 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Permissions;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -16,12 +14,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class JetpackRefill {
 
-    private final YamlConfigRepository configs;
-    private final ItemTagCodec itemTags;
+    private final ConfigRepository configs;
+    private final ItemTags itemTags;
+    private final ItemFactory items;
 
-    public JetpackRefill(@NotNull YamlConfigRepository configs, @NotNull ItemTagCodec itemTags) {
+    public JetpackRefill(@NotNull ConfigRepository configs, @NotNull ItemTags itemTags, @NotNull ItemFactory items) {
         this.configs = configs;
         this.itemTags = itemTags;
+        this.items = items;
     }
 
     /**
@@ -40,13 +40,13 @@ public class JetpackRefill {
                     || !itemTags.getCustomFuelID(cursorItem).equals(customFuel.getId())
             ) return false;
             if (!Permissions.hasRawPermission(player, customFuel.getPermission()))
-                NoPermissionLvlException.send();
+                NoPermissionLvlException.throwNow();
         }
         if (customFuel == null)
             if (jetpack.getFuel().getItem() != cursorItem.getType()) return false;
 
         if (!Permissions.hasRawPermission(player, jetpack.getPermission(Permissions.PERMISSION_REFILL_FUEL_SUFFIX)))
-            NoPermissionLvlException.send();
+            NoPermissionLvlException.throwNow();
 
         val addFuelAmount = leftClick ? cursorItem.getAmount() : 1;
         var jpFuel = itemTags.getFuelValue(slotItem);
@@ -54,7 +54,7 @@ public class JetpackRefill {
         val fuel = jpFuel + addFuelAmount;
 
         val item = itemTags.setFuelValue(slotItem, fuel);
-        ItemFactory.updateDisplayItem(jetpack, item, fuel);
+        items.updateDisplayItem(jetpack, item, fuel);
         return true;
     }
 

@@ -1,11 +1,10 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.FlightSession;
+
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Particle;
@@ -20,12 +19,14 @@ import static java.lang.Math.sin;
 public class JetpackParticles {
 
     private final JavaPlugin plugin;
+    private final ServerVersion version;
     private final Log log;
 
     private BukkitTask task;
 
-    public JetpackParticles(@NotNull JavaPlugin plugin, @NotNull MessageSink messages) {
+    public JetpackParticles(@NotNull JavaPlugin plugin, @NotNull ServerVersion version, @NotNull MessageSink messages) {
         this.plugin = plugin;
+        this.version = version;
         this.log = new Log(getClass(), messages);
     }
 
@@ -35,10 +36,10 @@ public class JetpackParticles {
         if (jetpack == null || jetpack.getParticle() == null || !jetpack.getParticle().isEnable()) return;
         val effectName = jetpack.getParticle().getEffect().toUpperCase().trim();
         val effect = Catcher.create(() ->
-                Version.getServerVersion() > 8 ? Particle.valueOf(effectName) : Effect.valueOf(effectName)
+                version.getServerVersion() > 8 ? Particle.valueOf(effectName) : Effect.valueOf(effectName)
         ).onFailure(error -> {
             log.log("&cInvalid particle effect name: %s - details: %s", jetpack.getParticle().getEffect(), error);
-        }).getOrDefault(Version.getServerVersion() > 8 ? Particle.CLOUD : Effect.SMOKE);
+        }).getOrDefault(version.getServerVersion() > 8 ? Particle.CLOUD : Effect.SMOKE);
         log.log("creating task for particle effect");
         // main thread: spawnParticle / playEffect are not thread safe
         Bukkit.getScheduler().runTaskTimer(plugin, bukkitTask -> {
@@ -65,7 +66,7 @@ public class JetpackParticles {
         if (!session.isActive() || !player.isFlying() || ((LivingEntity) player).isOnGround()) return;
 
         val location = player.getLocation();
-        if (Version.getServerVersion() <= 8 && effect instanceof Effect legacy) {
+        if (version.getServerVersion() <= 8 && effect instanceof Effect legacy) {
             player.getWorld().playEffect(
                     location.add(0.0, 0.8, 0.0),
                     legacy,

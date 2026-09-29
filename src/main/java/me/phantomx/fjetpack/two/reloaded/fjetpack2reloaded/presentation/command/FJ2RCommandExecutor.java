@@ -2,7 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command
 
 import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.handler.CommandHandler;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

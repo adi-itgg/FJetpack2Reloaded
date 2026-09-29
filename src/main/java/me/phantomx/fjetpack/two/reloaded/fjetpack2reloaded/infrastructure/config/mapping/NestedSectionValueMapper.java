@@ -1,7 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.SectionPath;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.SectionPath;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;

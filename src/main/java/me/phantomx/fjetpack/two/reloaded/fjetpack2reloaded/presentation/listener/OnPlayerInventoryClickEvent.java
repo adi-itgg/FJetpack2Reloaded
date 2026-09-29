@@ -7,7 +7,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerReg
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -67,7 +67,7 @@ public class OnPlayerInventoryClickEvent {
             if (slotItem.getType() == Material.AIR || e.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
             val offHandItem = fj2RPlayer.getPlayer().getInventory().getItemInOffHand();
             val check = fj2RPlayer.isJetpack(offHandItem, false);
-            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.send();
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow();
             if (check == FlightCheck.NOT_A_JETPACK) {
                 fj2RPlayer.turnOffDetached();
                 return;
@@ -79,7 +79,7 @@ public class OnPlayerInventoryClickEvent {
         }
         // check if player is flying using jetpack and check jetpack is exists from equipment
         if (fj2RPlayer.isActive() || e.getSlotType() != InventoryType.SlotType.ARMOR) return;
-        if (!ItemTagCodec.isItemArmorFast(cursorItem) || !ItemTagCodec.isItemArmorFast(slotItem)) return;
+        if (!itemTags.isItemArmorFast(cursorItem) || !itemTags.isItemArmorFast(slotItem)) return;
         if (itemTags.isActiveJetpack(slotItem, fj2RPlayer.getJetpackUniqueId())) {
             fj2RPlayer.turnOffDetached();
             return;

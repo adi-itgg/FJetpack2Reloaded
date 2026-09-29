@@ -2,19 +2,20 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.confi
 
 import jakarta.inject.Singleton;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Config;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.CustomFuel;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Jetpack;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.dto.Message;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Config;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Jetpack;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Message;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.ConfigLoader;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.CustomFuelConfigLoader;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.JetpackConfigLoader;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.LoadSupport;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.MessageConfigLoader;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.PluginConfigLoader;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -33,7 +34,7 @@ import java.util.function.Consumer;
  * Field names of the DTOs are the YAML keys - do not rename them.
  */
 @Singleton
-public class YamlConfigRepository {
+public class YamlConfigRepository implements ConfigRepository {
 
     private final JavaPlugin plugin;
     private final MessageSink messages;
@@ -83,18 +84,22 @@ public class YamlConfigRepository {
         reloadEntries(sender, jetpackLoader, loaded -> jetpacks = loaded);
     }
 
+    @Override
     public Config config() {
         return config;
     }
 
+    @Override
     public Message message() {
         return message;
     }
 
+    @Override
     public @NotNull Map<String, Jetpack> jetpacks() {
         return jetpacks;
     }
 
+    @Override
     public @NotNull Map<String, CustomFuel> customFuels() {
         return customFuels;
     }
@@ -107,7 +112,7 @@ public class YamlConfigRepository {
                     apply.accept(loaded);
                     messages.send(sender, "Loaded &6%s&a", loader.file());
                 })
-                .onFailure(error -> messages.send(sender, "&cError while load %s", loader.file()));
+                .onFailure(error -> messages.send(sender, "&cError while load %s: %s", loader.file(), error));
     }
 
     private <T> void reloadEntries(@NotNull CommandSender sender,
@@ -118,7 +123,7 @@ public class YamlConfigRepository {
                     apply.accept(loaded);
                     messages.send(sender, "Loaded &6%s&a", loader.file());
                 })
-                .onFailure(error -> messages.send(sender, "&cError while load %s", loader.file()));
+                .onFailure(error -> messages.send(sender, "&cError while load %s: %s", loader.file(), error));
     }
 
     private @NotNull LoadSupport support(@NotNull CommandSender sender) {

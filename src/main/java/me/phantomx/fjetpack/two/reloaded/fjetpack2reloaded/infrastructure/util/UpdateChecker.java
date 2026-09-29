@@ -4,7 +4,7 @@ import jakarta.inject.Singleton;
 import lombok.Cleanup;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,9 +20,9 @@ public class UpdateChecker {
     private static final int RESOURCE_ID = 107883;
 
     private final JavaPlugin plugin;
-    private final Messages messages;
+    private final MessageSink messages;
 
-    public UpdateChecker(@NotNull JavaPlugin plugin, @NotNull Messages messages) {
+    public UpdateChecker(@NotNull JavaPlugin plugin, @NotNull MessageSink messages) {
         this.plugin = plugin;
         this.messages = messages;
     }
@@ -52,7 +52,7 @@ public class UpdateChecker {
 
     /** The HTTP call is async; chat must go back to the main thread. */
     private void reply(@NotNull CommandSender sender, @NotNull String message, Object... args) {
-        Bukkit.getScheduler().runTask(plugin, () -> messages.sendMessage(sender, message, args));
+        Bukkit.getScheduler().runTask(plugin, () -> messages.send(sender, message, args));
     }
 
 }
