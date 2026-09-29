@@ -1,9 +1,8 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemMetaData;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
@@ -12,19 +11,26 @@ import org.jetbrains.annotations.Nullable;
 
 public class OnPlayerCrouchEvent {
 
-    public static void onToggleSneak(@NotNull PlayerToggleSneakEvent e) {
+    private final PlayerRegistry players;
+    private final ItemFactory items;
+
+    public OnPlayerCrouchEvent(@NotNull PlayerRegistry players, @NotNull ItemFactory items) {
+        this.players = players;
+        this.items = items;
+    }
+
+    public void onToggleSneak(@NotNull PlayerToggleSneakEvent e) {
         val player = e.getPlayer();
         if (e.isSneaking() || !((LivingEntity) player).isOnGround()) return;
 
-        val ac = FJ2RPlayer.getAsFJ2RPlayer(player);
+        val ac = players.of(player);
         if (ac.isActive()) {
             ac.turnOff(true);
             return;
         }
 
         val offHandItem = player.getInventory().getItemInOffHand();
-        var jetpackId = ItemMetaData.getJetpackID(offHandItem, "");
-        var jetpack = Configs.getJetpacksLoaded().get(jetpackId);
+        val jetpack = items.jetpackOf(offHandItem);
         if (jetpack != null && jetpack.isRunInOffHandOnly()) {
             if (ac.isJetpack(offHandItem, false, true))
                 ac.turnOn();
@@ -42,7 +48,5 @@ public class OnPlayerCrouchEvent {
         }
 
     }
-
-
 
 }

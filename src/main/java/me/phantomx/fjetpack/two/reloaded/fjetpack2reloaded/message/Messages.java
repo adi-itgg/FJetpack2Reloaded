@@ -1,8 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Message;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,13 +9,25 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Messages {
+public class Messages implements MessageSink {
 
     public static final String DEFAULT_PREFIX = "&e&l[&bFJetpack&62Reloaded&e&l]&r";
 
+    /**
+     * Read lazily on every send: the configured prefix becomes available as soon as message.yml is
+     * loaded, and must not be captured earlier (config reload replaces it).
+     */
+    private final Supplier<Message> configuredMessage;
+
+    public Messages(@NotNull Supplier<Message> configuredMessage) {
+        this.configuredMessage = configuredMessage;
+    }
+
+    /** Pure formatting helper (hex {@code #rrggbb} + legacy {@code &} codes). Holds no state. */
     public static @NotNull String translateColorCodes(@NotNull String message) {
         Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
         Matcher matcher = pattern.matcher(message);
@@ -37,13 +48,18 @@ public class Messages {
         return message;
     }
 
+    @Override
+    public void send(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
+        sendMessage(target, message, args);
+    }
 
-    public static void sendMessage(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
+    public void sendMessage(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
         sendMessage(true, target, message, args);
     }
-    public static void sendMessage(boolean withPrefix, @NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
+
+    public void sendMessage(boolean withPrefix, @NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
         if (message.isEmpty()) return;
-        val prefix = Catcher.create(() -> Configs.getMessage().getPrefix()).getOrDefault(DEFAULT_PREFIX) + " ";
+        val prefix = currentPrefix() + " ";
         message = translateColorCodes(withPrefix ? prefix + message : message);
         if (args.length == 0) {
             target.sendMessage(message);
@@ -76,8 +92,16 @@ public class Messages {
      *
      * @param args for string format like %s
      */
-    public static void sendMessage(@NotNull String message, Object... args) {
+    public void sendMessage(@NotNull String message, Object... args) {
         sendMessage(true, Bukkit.getConsoleSender(), message, args);
+    }
+
+    private @NotNull String currentPrefix() {
+        try {
+            return configuredMessage.get().getPrefix();
+        } catch (Throwable ignored) {
+            return DEFAULT_PREFIX;
+        }
     }
 
 }

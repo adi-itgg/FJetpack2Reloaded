@@ -1,18 +1,19 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.CommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command.FJ2RCommandExecutor;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event.RegisterEvent;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.event.SuperiorSkyblockEvent;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.UpdateChecker;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.Command;
@@ -22,70 +23,71 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.WeakHashMap;
 
+/**
+ * Composition root: builds the object graph once and hands it to the Bukkit entry points.
+ * No static state is used to reach collaborators.
+ */
 public class FJetpack2Reloaded extends JavaPlugin {
 
-    private static final int metricsId = 17668;
+    private static final int METRICS_ID = 17668;
 
-    @Getter @Setter(AccessLevel.PRIVATE)
-    private static @NotNull FJetpack2Reloaded plugin;
-    @Getter @Setter(AccessLevel.PRIVATE)
-    private static int uniqueId;
-
-    @Getter
-    private static final @NotNull WeakHashMap<UUID, FJ2RPlayer> FJ2RPlayers = new WeakHashMap<>();
-    @Getter
-    private static final @NotNull Random random = new Random();
-
-    private void generateRandomId() {
-        for (int i = 0; i < 5; i++)
-            getRandom().nextInt();
-        setUniqueId(getRandom().nextInt());
-    }
+    private Messages messages;
+    private YamlConfigRepository configs;
+    private ItemTagCodec itemTags;
+    private ItemFactory items;
+    private PlayerRegistry players;
+    private UpdateChecker updateChecker;
+    private FJ2RCommandExecutor commandExecutor;
+    private CommandTabCompleter tabCompleter;
+    private Log log;
 
     @Override
     public void onEnable() {
-        setPlugin(this);
-        generateRandomId();
-        Log.log("is server support: %b - %s", Version.isServerSupport(), uniqueId);
-        if (!Version.isServerSupport()) {
+        this.messages = new Messages(() -> configs == null ? null : configs.message());
+        this.configs = new YamlConfigRepository(this, messages);
+        this.log = new Log(getClass(), messages);
+        this.itemTags = new ItemTagCodec(this);
+        this.items = new ItemFactory(configs, itemTags, messages);
+        this.players = new PlayerRegistry(this, configs, messages, itemTags);
+        this.updateChecker = new UpdateChecker(this, messages);
+        this.commandExecutor = new FJ2RCommandExecutor(this, configs, messages, items, updateChecker);
+        this.tabCompleter = new CommandTabCompleter(configs, messages);
+
+        val serverSupported = Version.isServerSupport(messages, itemTags);
+        log.log("is server support: %b", serverSupported);
+        if (!serverSupported) {
             setEnabled(false);
             return;
         }
 
-        getServer().getPluginManager().registerEvents(new SuperiorSkyblockEvent(), plugin);
-        getServer().getPluginManager().registerEvents(new RegisterEvent(), plugin);
+        getServer().getPluginManager().registerEvents(new SuperiorSkyblockEvent(this, configs, messages, players), this);
+        getServer().getPluginManager().registerEvents(
+                new RegisterEvent(players, configs, items, itemTags, messages, updateChecker), this);
 
-        Configs.reloadConfig();
+        configs.reload();
 
-        new Metrics(this, metricsId);
+        new Metrics(this, METRICS_ID);
     }
 
     @Override
     public void onDisable() {
-        getFJ2RPlayers().values().forEach(activePlayer -> {
-            activePlayer.turnOff(false, false, false, true);
-        });
-        getFJ2RPlayers().clear();
-        Configs.getJetpacksLoaded().clear();
+        players.clear();
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return Catcher.create(() -> FJ2RCommandExecutor.onCommand(sender, command, label, args))
+        return Catcher.create(() -> commandExecutor.onCommand(sender, command, label, args))
                 .onFailure(error -> {
                     if (error instanceof NoPermissionLvlException) {
-                        Messages.sendMessage(sender, Configs.getMessage().getNoPermission());
+                        messages.sendMessage(sender, configs.message().getNoPermission());
                         return;
                     }
                     if (error instanceof NumberFormatException) {
-                        Messages.sendMessage(sender, Configs.getMessage().getInvalidNumber());
+                        messages.sendMessage(sender, configs.message().getInvalidNumber());
                         return;
                     }
-                    Messages.sendMessage("Command error!: %s", error);
+                    messages.sendMessage("Command error!: %s", error);
                 })
                 .getOrDefault(false);
     }
@@ -93,6 +95,7 @@ public class FJetpack2Reloaded extends JavaPlugin {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        return CommandTabCompleter.onTab(sender, command, alias, args);
+        return tabCompleter.onTab(sender, command, alias, args);
     }
+
 }

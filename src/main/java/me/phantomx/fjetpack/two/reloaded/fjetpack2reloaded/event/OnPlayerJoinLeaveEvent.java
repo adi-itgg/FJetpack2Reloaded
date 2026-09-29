@@ -1,23 +1,35 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.UpdateChecker;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class OnPlayerJoinLeaveEvent {
 
-    public static void onJoin(@NotNull PlayerJoinEvent e) {
-        if (!Configs.getConfig().isUpdateNotification()) return;
-        if (!Permissions.hasPermission(e.getPlayer(), "checkupdate")) return;
-        Version.checkUpdate(e.getPlayer());
+    private final PlayerRegistry players;
+    private final YamlConfigRepository configs;
+    private final UpdateChecker updateChecker;
+
+    public OnPlayerJoinLeaveEvent(@NotNull PlayerRegistry players,
+                                  @NotNull YamlConfigRepository configs,
+                                  @NotNull UpdateChecker updateChecker) {
+        this.players = players;
+        this.configs = configs;
+        this.updateChecker = updateChecker;
     }
 
-    public static void onLeave(@NotNull PlayerQuitEvent e) {
-        FJ2RPlayer.getAsFJ2RPlayer(e.getPlayer()).turnOff();
+    public void onJoin(@NotNull PlayerJoinEvent e) {
+        if (!configs.config().isUpdateNotification()) return;
+        if (!Permissions.hasPermission(e.getPlayer(), "checkupdate")) return;
+        updateChecker.check(e.getPlayer());
+    }
+
+    public void onLeave(@NotNull PlayerQuitEvent e) {
+        players.of(e.getPlayer()).turnOff();
     }
 
 }

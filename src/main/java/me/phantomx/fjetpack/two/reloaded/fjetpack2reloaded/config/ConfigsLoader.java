@@ -5,6 +5,7 @@ import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.annotation.SectionPath;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.CustomFuel;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.ActionHandler;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import org.bukkit.Bukkit;
@@ -16,7 +17,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Reflection mapper from a YAML section to a config DTO.
+ * <p>
+ * Field names of the DTOs are the YAML keys (first letter may be upper or lower case).
+ */
 public class ConfigsLoader {
 
     @SneakyThrows
@@ -29,7 +36,10 @@ public class ConfigsLoader {
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
-    public static <T> @Nullable T appendConfigValue(@Nullable ConfigurationSection section, @NotNull Class<T> clazz) {
+    public static <T> @Nullable T appendConfigValue(@Nullable ConfigurationSection section,
+                                                    @NotNull Class<T> clazz,
+                                                    @NotNull Map<String, CustomFuel> customFuels,
+                                                    @NotNull MessageSink messages) {
         if (section == null) return null;
         val instance = (T) clazz.getDeclaredConstructors()[0].newInstance();
         iterateFields(clazz, field -> {
@@ -47,16 +57,16 @@ public class ConfigsLoader {
             }
             if (type.isAssignableFrom(CustomFuel.class) && value instanceof String val) {
                 if (!val.equalsIgnoreCase("none")) {
-                    val customFuel = Configs.getCustomFuelLoaded().get(val);
+                    val customFuel = customFuels.get(val);
                     if (customFuel == null)
-                        Messages.sendMessage("&cInvalid custom fuel id %s", val);
+                        messages.send(Bukkit.getConsoleSender(), "&cInvalid custom fuel id %s", val);
                     field.set(instance, customFuel);
                     return;
                 }
             }
             val annotation = type.getDeclaredAnnotation(SectionPath.class);
             if (annotation != null) {
-                field.set(instance, appendConfigValue(section.getConfigurationSection(annotation.value()), type));
+                field.set(instance, appendConfigValue(section.getConfigurationSection(annotation.value()), type, customFuels, messages));
                 return;
             }
             if (type.isEnum()) {
@@ -64,7 +74,7 @@ public class ConfigsLoader {
                 return;
             }
             if (type.isAssignableFrom(CustomFuel.class) && value instanceof String) {
-                field.set(instance, Configs.getCustomFuelLoaded().get(value));
+                field.set(instance, customFuels.get(value));
                 return;
             }
             if (type.isAssignableFrom(String.class) && value instanceof String text) {

@@ -4,8 +4,7 @@ import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.IslandFlag;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import lombok.*;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.JetpackEvent;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
@@ -14,10 +13,10 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Act
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.GriefPrevention;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.hook.SuperiorSkyblock;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemMetaData;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemUtil;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
@@ -29,6 +28,7 @@ import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,24 @@ import static java.lang.Math.sin;
 @Data
 public class FJ2RPlayer {
 
-    private Log log = new Log(this.getClass());
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final PlayerRegistry registry;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final JavaPlugin plugin;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final YamlConfigRepository configs;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final MessageSink messages;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final ItemTagCodec itemTags;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private final Log log;
 
     private boolean isActive;
     private @NonNull Player player;
@@ -61,66 +78,68 @@ public class FJ2RPlayer {
     @Setter(AccessLevel.NONE)
     private int jetpackUniqueId;
 
-
-    public static @NotNull FJ2RPlayer getAsFJ2RPlayer(@NotNull Player player) {
-        var activePlayer = FJetpack2Reloaded.getFJ2RPlayers().get(player.getUniqueId());
-        if (activePlayer == null) {
-            activePlayer = new FJ2RPlayer(player);
-            FJetpack2Reloaded.getFJ2RPlayers().put(player.getUniqueId(), activePlayer);
-        }
-        activePlayer.setPlayer(player);
-        return activePlayer;
+    public FJ2RPlayer(@NotNull Player player,
+                      @NotNull PlayerRegistry registry,
+                      @NotNull JavaPlugin plugin,
+                      @NotNull YamlConfigRepository configs,
+                      @NotNull MessageSink messages,
+                      @NotNull ItemTagCodec itemTags) {
+        this.player = player;
+        this.registry = registry;
+        this.plugin = plugin;
+        this.configs = configs;
+        this.messages = messages;
+        this.itemTags = itemTags;
+        this.log = new Log(getClass(), messages);
     }
 
     public boolean isAllowedGriefPrevention() {
         if (jetpack == null) return true;
-        return isAllowedGriefPrevention(jetpack, player);
+        return isAllowedGriefPrevention(jetpack);
     }
 
-    private static boolean isAllowedGriefPrevention(@NotNull Jetpack jetpack, @NotNull Player player) {
+    private boolean isAllowedGriefPrevention(@NotNull Jetpack jetpack) {
         if (Permissions.isAdminOrOp(player)) return true;
         val griefPrevention = jetpack.getGriefPrevention();
         if (griefPrevention == null || !griefPrevention.isEnable() || !GriefPrevention.isActive()) return true;
         @Nullable val claim = GriefPrevention.get().dataStore.getClaimAt(player.getLocation(),
                 true,
                 true,
-                FJ2RPlayer.getAsFJ2RPlayer(player).getGriefPreventionClaim()
+                getGriefPreventionClaim()
         );
         if (griefPrevention.isAllowInsideAllClaim()) {
             if (claim != null) {
-                FJ2RPlayer.getAsFJ2RPlayer(player).setGriefPreventionClaim(claim);
+                setGriefPreventionClaim(claim);
                 return true;
             }
-            Messages.sendMessage(player, Configs.getMessage().getGriefPreventionOutsideClaim());
+            messages.send(player, configs.message().getGriefPreventionOutsideClaim());
             return false;
         }
         if (claim == null) {
-            Messages.sendMessage(player, Configs.getMessage().getGriefPreventionOutsideClaim());
+            messages.send(player, configs.message().getGriefPreventionOutsideClaim());
             return false;
         }
         if (griefPrevention.isAllowBypassClaim() && Permissions.hasRawPermission(player,
                 jetpack.getPermission(Permissions.PERMISSION_BYPASS_GRIEF_PREVENTION_CLAIM))
         ) return true;
         if (!griefPrevention.isOnlyAllowInsideOwnClaim()) {
-            Messages.sendMessage(player, Configs.getMessage().getNoPermission());
+            messages.send(player, configs.message().getNoPermission());
             return false;
         }
         if (claim.getOwnerID() != player.getUniqueId()) {
-            Messages.sendMessage(player, Configs.getMessage().getNoPermission());
+            messages.send(player, configs.message().getNoPermission());
             return false;
         }
-        FJ2RPlayer.getAsFJ2RPlayer(player).setGriefPreventionClaim(claim);
+        setGriefPreventionClaim(claim);
         return true;
     }
 
-
-
     public boolean isAllowedSuperiorSkyblock() {
         if (jetpack == null) return true;
-        return isAllowedSuperiorSkyblock(jetpack, player);
+        return isAllowedSuperiorSkyblock(jetpack);
     }
 
-    private static boolean isAllowedSuperiorSkyblock(@NotNull Jetpack jetpack, @NotNull Player player) {
+    private boolean isAllowedSuperiorSkyblock(@NotNull Jetpack jetpack) {
         if (!SuperiorSkyblock.isActive() || Permissions.isAdminOrOp(player)) return true;
         val superiorSkyblock2 = jetpack.getSuperiorSkyblock2();
         if (superiorSkyblock2 == null || !superiorSkyblock2.isEnable()) return true;
@@ -130,11 +149,11 @@ public class FJ2RPlayer {
         )) return true;
         val island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
         if (island == null) {
-            Messages.sendMessage(player, Configs.getMessage().getSuperiorSkyblock2OutsideIsland());
+            messages.send(player, configs.message().getSuperiorSkyblock2OutsideIsland());
             return true;
         }
         if (!island.hasSettingsEnabled(IslandFlag.getByName(SuperiorSkyblock.FLAG_PRIVILEGE))) {
-            Messages.sendMessage(player, Configs.getMessage().getSuperiorSkyblock2NoFlag());
+            messages.send(player, configs.message().getSuperiorSkyblock2NoFlag());
             return false;
         }
         // privilege check
@@ -143,26 +162,10 @@ public class FJ2RPlayer {
         )) return true;
         val hasPerm = island.hasPermission(player, IslandPrivilege.getByName(SuperiorSkyblock.FLAG_PRIVILEGE));
         if (!hasPerm)
-            Messages.sendMessage(player, Configs.getMessage().getSuperiorSkyblock2NoPermission());
+            messages.send(player, configs.message().getSuperiorSkyblock2NoPermission());
         if (hasPerm)
-            FJ2RPlayer.getAsFJ2RPlayer(player).setSuperiorSkyblock2IslandUUID(island.getUniqueId());
+            setSuperiorSkyblock2IslandUUID(island.getUniqueId());
         return hasPerm;
-    }
-
-    public static void updateDisplayItem(@NotNull Jetpack jetpack, @NotNull ItemStack item, long finalFuel) {
-        val itemMeta = item.getItemMeta();
-        if (itemMeta != null) {
-            val displayFuel = ItemUtil.getDisplayFuel(jetpack);
-
-            if (Version.getServerVersion() > 16)
-                itemMeta.setUnbreakable(jetpack.isUnbreakable());
-            itemMeta.setDisplayName(jetpack.getDisplayName());
-            itemMeta.setLore(jetpack.getLore().stream()
-                    .map(v -> v.replace(Placeholder.FUEL, displayFuel)
-                            .replace(Placeholder.FUEL_VALUE, String.valueOf(finalFuel))
-                    ).toList());
-            item.setItemMeta(itemMeta);
-        }
     }
 
     private void particleAction(Object obj) {
@@ -196,16 +199,16 @@ public class FJ2RPlayer {
 
     private void startParticle() {
         // start particle
-        Log.log("starting particle effect");
+        log.log("starting particle effect");
         if (jetpack == null || jetpack.getParticle() == null || !jetpack.getParticle().isEnable()) return;
         val effectName = jetpack.getParticle().getEffect().toUpperCase().trim();
         val effect = Catcher.create(() ->
                 Version.getServerVersion() > 8 ? Particle.valueOf(effectName) : Effect.valueOf(effectName)
         ).onFailure(error -> {
-            Log.log("&cInvalid particle effect name: %s - details: %s", jetpack.getParticle().getEffect(), error);
+            log.log("&cInvalid particle effect name: %s - details: %s", jetpack.getParticle().getEffect(), error);
         }).getOrDefault(Version.getServerVersion() > 8 ? Particle.CLOUD : Effect.SMOKE);
-        Log.log("creating task for particle effect");
-        Bukkit.getScheduler().runTaskTimerAsynchronously(FJetpack2Reloaded.getPlugin(), task -> {
+        log.log("creating task for particle effect");
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, task -> {
             if (particleTask == null) particleTask = task;
             if (!isActive()) {
                 task.cancel();
@@ -214,11 +217,6 @@ public class FJ2RPlayer {
             particleAction(effect);
             }, 0L, jetpack.getParticle().getDelay()
         );
-    }
-
-    private int generateNewRandomId() {
-        jetpackUniqueId = FJetpack2Reloaded.getRandom().nextInt();
-        return jetpackUniqueId;
     }
 
     @SneakyThrows
@@ -231,7 +229,7 @@ public class FJ2RPlayer {
         var i = 0;
         while (iterator.hasNext()) {
             var item = iterator.next();
-            if (item != null && ItemMetaData.isActiveJetpack(item, jetpackUniqueId)) {
+            if (item != null && itemTags.isActiveJetpack(item, jetpackUniqueId)) {
                 if (Version.getServerVersion() > 16) {
                     val itemMeta = item.getItemMeta();
                     if (itemMeta != null && jetpack != null) {
@@ -248,18 +246,19 @@ public class FJ2RPlayer {
     }
 
     private void onOutOfFuel() {
-        Messages.sendMessage(player, Configs.getMessage().getOutOfFuel());
+        messages.send(player, configs.message().getOutOfFuel());
         if (jetpack == null || jetpack.getOnEmptyFuel() == JetpackEvent.NONE) return;
         if (Permissions.hasRawPermission(player, jetpack.getPermission(Permissions.PERMISSION_KEEP_ON_EMPTY_SUFFIX))) return;
+        // NOTE: pre-existing behaviour - the outcome uses OnDeath although this is the out-of-fuel path.
         updateActiveJetpackArmorEquipment(item -> switch (jetpack.getOnDeath()) {
             case NONE -> item;
             case REMOVE -> {
-                Messages.sendMessage(player, Configs.getMessage().getOnEmptyFuelRemoved());
+                messages.send(player, configs.message().getOnEmptyFuelRemoved());
                 yield null;
             }
             case DROP -> {
                 player.getWorld().dropItemNaturally(player.getLocation(), item.clone());
-                Messages.sendMessage(player, Configs.getMessage().getOnEmptyFuelDropped());
+                messages.send(player, configs.message().getOnEmptyFuelDropped());
                 yield null;
             }
         });
@@ -268,11 +267,12 @@ public class FJ2RPlayer {
     public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel) {
         return isJetpack(stack, consumeFuel, false);
     }
+
     public boolean isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
         if (stack == null || stack.getType() == Material.AIR) return false;
 
-        val jetpackId = ItemMetaData.getJetpackID(stack, "");
-        val jetpack = Configs.getJetpacksLoaded().get(jetpackId);
+        val jetpackId = itemTags.getJetpackID(stack, "");
+        val jetpack = configs.jetpacks().get(jetpackId);
         if (jetpack == null) return false;
 
         if (stack.getType() != jetpack.getItem()) return false;
@@ -284,7 +284,7 @@ public class FJ2RPlayer {
         val isWorldBlocked = jetpack.getBlockedWorlds().stream()
                 .anyMatch(world -> player.getWorld().getName().equals(world));
         if (isWorldBlocked) {
-            Messages.sendMessage(player, Configs.getMessage().getBlockedWorlds());
+            messages.send(player, configs.message().getBlockedWorlds());
             IMessageException.send();
         }
 
@@ -295,13 +295,13 @@ public class FJ2RPlayer {
             IMessageException.send();
 
 
-        var fuel = ItemMetaData.getFuelValue(stack);
+        var fuel = itemTags.getFuelValue(stack);
         assert fuel != null;
         val canBypassCost = Permissions.hasRawPermission(player,
                 jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SUFFIX
         );
         if (!canBypassCost && fuel < jetpack.getFuel().getCost()) {
-            updateDisplayItem(jetpack, stack, fuel);
+            ItemFactory.updateDisplayItem(jetpack, stack, fuel);
             onOutOfFuel();
             IMessageException.send();
         }
@@ -312,7 +312,7 @@ public class FJ2RPlayer {
                 jetpack.getPermission() + Permissions.PERMISSION_BYPASS_FUEL_SPRINT_SUFFIX
         );
         if (!canBypassSprintCost && player.isSprinting() && fuel < jetpack.getFuel().getSprintCost()) {
-            updateDisplayItem(jetpack, stack, fuel);
+            ItemFactory.updateDisplayItem(jetpack, stack, fuel);
             onOutOfFuel();
             IMessageException.send();
         }
@@ -323,19 +323,20 @@ public class FJ2RPlayer {
             setJetpack(jetpack);
 
         if (!consumeFuel) {
-            stack = ItemMetaData.setActiveJetpack(stack, generateNewRandomId());
+            jetpackUniqueId = itemTags.newItemId();
+            stack = itemTags.setActiveJetpack(stack, jetpackUniqueId);
             @NotNull ItemStack finalArmor = stack;
             updateActiveJetpackArmorEquipment(item -> finalArmor);
             return true;
         }
 
         if (jetpack.getFuel().getWarnRunOutBelow() != -1 && fuel <= jetpack.getFuel().getWarnRunOutBelow())
-            Messages.sendMessage(player,
-                    Configs.getMessage().getWarnRunOutBelow().replace(Placeholder.AMOUNT, String.valueOf(fuel))
+            messages.send(player,
+                    configs.message().getWarnRunOutBelow().replace(Placeholder.AMOUNT, String.valueOf(fuel))
             );
 
-        updateDisplayItem(jetpack, stack, fuel);
-        stack = ItemMetaData.setFuelValue(stack, fuel);
+        ItemFactory.updateDisplayItem(jetpack, stack, fuel);
+        stack = itemTags.setFuelValue(stack, fuel);
         @NotNull ItemStack finalArmor = stack;
         updateActiveJetpackArmorEquipment(item -> finalArmor);
         return true;
@@ -354,7 +355,7 @@ public class FJ2RPlayer {
             val offHandItem = player.getInventory().getItemInOffHand();
             if (!isJetpack(offHandItem, !starting)) {
                 turnOff();
-                Messages.sendMessage(player, Configs.getMessage().getDetached());
+                messages.send(player, configs.message().getDetached());
             }
             return;
         }
@@ -378,7 +379,7 @@ public class FJ2RPlayer {
 
         val delayInSec = jetpack.getFuel().getBurnRate();
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(FJetpack2Reloaded.getPlugin(), bukkitTask -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, bukkitTask -> {
             if (burnTask == null) burnTask = bukkitTask;
             if (!starting && !isActive()) {
                 bukkitTask.cancel();
@@ -389,7 +390,7 @@ public class FJ2RPlayer {
                 setActive(true);
                 player.setAllowFlight(true);
                 player.setFlySpeed(jetpack.getSpeed() / 10.0f);
-                Messages.sendMessage(player, Configs.getMessage().getTurnOn());
+                messages.send(player, configs.message().getTurnOn());
 
                 startParticle();
             }).onFailure(error -> {
@@ -398,7 +399,7 @@ public class FJ2RPlayer {
                     return;
                 }
                 if (error instanceof NoPermissionLvlException) {
-                    Messages.sendMessage(player, Configs.getMessage().getNoPermission());
+                    messages.send(player, configs.message().getNoPermission());
                     turnOff();
                     return;
                 }
@@ -414,12 +415,13 @@ public class FJ2RPlayer {
 
 
     public void turnOffDetached() {
-        Messages.sendMessage(player, player.isFlying()
-                        ? Configs.getMessage().getDetached()
-                        : Configs.getMessage().getTurnOff()
+        messages.send(player, player.isFlying()
+                        ? configs.message().getDetached()
+                        : configs.message().getTurnOff()
         );
         turnOff();
     }
+
     public void turnOff() {
         turnOff(false, false ,false, false);
     }
@@ -440,37 +442,37 @@ public class FJ2RPlayer {
         if (particleTask != null)
             particleTask.cancel();
         particleTask = null;
-        FJetpack2Reloaded.getFJ2RPlayers().remove(player.getUniqueId());
+        registry.remove(player);
         griefPreventionClaim = null;
         superiorSkyblock2IslandUUID = null;
 
         if (onDied) {
             val msg = switch (jetpack.getOnDeath()) {
                 case NONE -> null;
-                case DROP -> Configs.getMessage().getOnDeathDropped();
-                case REMOVE -> Configs.getMessage().getOnDeathRemoved();
+                case DROP -> configs.message().getOnDeathDropped();
+                case REMOVE -> configs.message().getOnDeathRemoved();
             };
             if (msg != null)
-                Messages.sendMessage(player, msg);
+                messages.send(player, msg);
             return;
         }
         if (onEmptyFuel) {
             val msg = switch (jetpack.getOnEmptyFuel()) {
                 case NONE -> null;
-                case DROP -> Configs.getMessage().getOnEmptyFuelDropped();
-                case REMOVE -> Configs.getMessage().getOnEmptyFuelRemoved();
+                case DROP -> configs.message().getOnEmptyFuelDropped();
+                case REMOVE -> configs.message().getOnEmptyFuelRemoved();
             };
             if (msg != null)
-                Messages.sendMessage(player, msg);
+                messages.send(player, msg);
             return;
         }
         if (unloadedPlugin) {
-            Messages.sendMessage(player, "&cThis plugin has been unloaded!");
+            messages.send(player, "&cThis plugin has been unloaded!");
             return;
         }
 
         if (sendMsg)
-            Messages.sendMessage(player, Configs.getMessage().getTurnOff());
+            messages.send(player, configs.message().getTurnOff());
         jetpack = null;
     }
 

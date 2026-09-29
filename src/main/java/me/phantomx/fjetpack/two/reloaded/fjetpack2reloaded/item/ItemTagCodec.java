@@ -2,21 +2,51 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item;
 
 import lombok.SneakyThrows;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.StoredKey;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ItemMetaData {
+import java.util.Random;
 
-    public static void setParticle(@NotNull ItemStack itemStack, String particleName) {
+/**
+ * Reads/writes the plugin tags of an {@link ItemStack} (persistent data container on 1.18+,
+ * NMS reflection below that).
+ * <p>
+ * Owns the per-server "run id" that marks a jetpack as active for this plugin instance.
+ */
+public class ItemTagCodec {
+
+    private static final int RUN_ID_DRAWS = 5;
+
+    private final Plugin plugin;
+    private final Random random = new Random();
+    private final int runId = nextRunId();
+
+    public ItemTagCodec(@NotNull Plugin plugin) {
+        this.plugin = plugin;
+    }
+
+    /** New per-activation id for the currently worn jetpack. */
+    public int newItemId() {
+        return random.nextInt();
+    }
+
+    private int nextRunId() {
+        for (int i = 0; i < RUN_ID_DRAWS; i++)
+            random.nextInt();
+        return random.nextInt();
+    }
+
+    public void setParticle(@NotNull ItemStack itemStack, String particleName) {
         putString(itemStack, StoredKey.PARTICLE_ID, particleName);
     }
-    public static @NotNull String getParticle(@NotNull ItemStack itemStack) {
+
+    public @NotNull String getParticle(@NotNull ItemStack itemStack) {
         return getStringOrDefault(itemStack, StoredKey.PARTICLE_ID, "");
     }
 
@@ -25,33 +55,35 @@ public class ItemMetaData {
      *
      * @param id set null to delete/remove
      */
-    public static @NotNull ItemStack setJetpack(ItemStack itemStack, @Nullable String id) {
+    public @NotNull ItemStack setJetpack(ItemStack itemStack, @Nullable String id) {
         return putString(itemStack, StoredKey.PLUGIN_ID, id);
     }
 
-    public static @NotNull ItemStack setCustomFuelID(ItemStack itemStack, @Nullable String id) {
+    public @NotNull ItemStack setCustomFuelID(ItemStack itemStack, @Nullable String id) {
         return putString(itemStack, StoredKey.CUSTOM_FUEL_ID, id);
     }
-    public static @NotNull String getCustomFuelID(ItemStack itemStack) {
+
+    public @NotNull String getCustomFuelID(ItemStack itemStack) {
         return getStringOrDefault(itemStack, StoredKey.CUSTOM_FUEL_ID, "UNKNOWN-404");
     }
-    public static @NotNull ItemStack setFuelValue(ItemStack itemStack, @Nullable Long value) {
+
+    public @NotNull ItemStack setFuelValue(ItemStack itemStack, @Nullable Long value) {
         return putString(itemStack, StoredKey.FUEL_VALUE_ID, value != null ? String.valueOf(value) : null);
     }
 
-    public static @Nullable Long getFuelValue(ItemStack itemStack) {
+    public @Nullable Long getFuelValue(ItemStack itemStack) {
         val result = getStringOrDefault(itemStack, StoredKey.FUEL_VALUE_ID, "Error");
         if (result.equals("Error")) return null;
         return Long.parseLong(result);
     }
 
     @SneakyThrows
-    public static @NotNull ItemStack putString(ItemStack itemStack, @NotNull String key, @Nullable String value) {
+    public @NotNull ItemStack putString(ItemStack itemStack, @NotNull String key, @Nullable String value) {
         if (Version.getServerVersion() > 17) {
             // Minimum server v1.14.x
             val itemMeta = itemStack.getItemMeta();
             if (itemMeta == null) throw new NullPointerException("item meta is null!");
-            val namespacedKey = new NamespacedKey(FJetpack2Reloaded.getPlugin(), key);
+            val namespacedKey = new NamespacedKey(plugin, key);
             if (value == null)
                 itemMeta.getPersistentDataContainer().remove(namespacedKey);
             else
@@ -61,7 +93,7 @@ public class ItemMetaData {
             return itemStack;
         }
 
-        val craftItem = Class.forName("org.bukkit.craftbukkit.$nmsAPIVersion.inventory.CraftItemStack");
+        val craftItem = Class.forName(String.format("org.bukkit.craftbukkit.%s.inventory.CraftItemStack", Version.getNmsApiVersion()));
         val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
         val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
         var nbtTagCompound = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
@@ -82,17 +114,16 @@ public class ItemMetaData {
         return itemStack;
     }
 
-
-
-    public static @NotNull String getJetpackID(@NotNull ItemStack itemStack, @NotNull String defaultValue) {
+    public @NotNull String getJetpackID(@NotNull ItemStack itemStack, @NotNull String defaultValue) {
         return getStringOrDefault(itemStack, StoredKey.PLUGIN_ID, defaultValue);
     }
+
     @SneakyThrows
-    private static @NotNull String getStringOrDefault(ItemStack itemStack, @NotNull String key, @NotNull String defaultValue) {
+    private @NotNull String getStringOrDefault(ItemStack itemStack, @NotNull String key, @NotNull String defaultValue) {
         if (Version.getServerVersion() > 17) {
             val itemMeta = itemStack.getItemMeta();
             if (itemMeta == null) return defaultValue;
-            val namespacedKey = new NamespacedKey(FJetpack2Reloaded.getPlugin(), key);
+            val namespacedKey = new NamespacedKey(plugin, key);
             val persistentData = itemMeta.getPersistentDataContainer();
             return persistentData.getOrDefault(namespacedKey, PersistentDataType.STRING, defaultValue);
         }
@@ -104,7 +135,6 @@ public class ItemMetaData {
         val result = nbt.getClass().getMethod("getString", String.class).invoke(nbt, key);
         return result == null ? defaultValue : (String) result;
     }
-
 
     @SneakyThrows
     public static boolean isNotItemArmor(@NotNull ItemStack item) {
@@ -133,14 +163,14 @@ public class ItemMetaData {
                 || typeNameString.endsWith("_BOOTS");
     }
 
-    public static @NotNull ItemStack setActiveJetpack(@NotNull ItemStack item, int id) {
-        item = putString(item, StoredKey.JETPACK_RUN_PLUGIN_ID, StoredKey.JETPACK_RUN_PLUGIN_ID + FJetpack2Reloaded.getUniqueId());
+    public @NotNull ItemStack setActiveJetpack(@NotNull ItemStack item, int id) {
+        item = putString(item, StoredKey.JETPACK_RUN_PLUGIN_ID, StoredKey.JETPACK_RUN_PLUGIN_ID + runId);
         item = putString(item, StoredKey.ACTIVE_JETPACK_ID, StoredKey.ACTIVE_JETPACK_ID + id);
         return item;
     }
 
-    public static boolean isActiveJetpack(@NotNull ItemStack item, int id) {
-        val isInstanceMatch = getStringOrDefault(item, StoredKey.JETPACK_RUN_PLUGIN_ID, "").equals(StoredKey.JETPACK_RUN_PLUGIN_ID + FJetpack2Reloaded.getUniqueId());
+    public boolean isActiveJetpack(@NotNull ItemStack item, int id) {
+        val isInstanceMatch = getStringOrDefault(item, StoredKey.JETPACK_RUN_PLUGIN_ID, "").equals(StoredKey.JETPACK_RUN_PLUGIN_ID + runId);
         return isInstanceMatch && getStringOrDefault(item, StoredKey.ACTIVE_JETPACK_ID, "").equals(StoredKey.ACTIVE_JETPACK_ID + id);
     }
 

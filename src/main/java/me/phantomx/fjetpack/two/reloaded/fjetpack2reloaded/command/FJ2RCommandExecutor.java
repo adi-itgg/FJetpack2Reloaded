@@ -3,17 +3,15 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.command;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemMetaData;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemUtil;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.item.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Placeholder;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.PlayerUtil;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.UpdateChecker;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Version;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Bukkit;
@@ -21,6 +19,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -31,15 +30,32 @@ import java.util.Objects;
 
 public class FJ2RCommandExecutor {
 
-
-    private static final Log log = new Log(FJ2RCommandExecutor.class);
+    private final JavaPlugin plugin;
+    private final YamlConfigRepository configs;
+    private final Messages messages;
+    private final ItemFactory items;
+    private final UpdateChecker updateChecker;
+    private final Log log;
 
     @Getter(lazy = true)
-    private static final String helpText = initializeHelp();
+    private final String helpText = initializeHelp();
+
+    public FJ2RCommandExecutor(@NotNull JavaPlugin plugin,
+                               @NotNull YamlConfigRepository configs,
+                               @NotNull Messages messages,
+                               @NotNull ItemFactory items,
+                               @NotNull UpdateChecker updateChecker) {
+        this.plugin = plugin;
+        this.configs = configs;
+        this.messages = messages;
+        this.items = items;
+        this.updateChecker = updateChecker;
+        this.log = new Log(getClass(), messages);
+    }
 
     @SneakyThrows
-    private static @NotNull String initializeHelp() {
-        val is = FJetpack2Reloaded.getPlugin().getResource("help.txt");
+    private @NotNull String initializeHelp() {
+        val is = plugin.getResource("help.txt");
         if (is == null) return "";
         val bufferReader = new BufferedReader(new InputStreamReader(is));
         val result = new StringBuilder();
@@ -50,11 +66,11 @@ public class FJ2RCommandExecutor {
         }
         return result.toString().replace(
                 Placeholder.VERSION,
-                FJetpack2Reloaded.getPlugin().getDescription().getVersion()
+                plugin.getDescription().getVersion()
         );
     }
 
-    private static String getHelpLine(int line) {
+    private String getHelpLine(int line) {
         return getHelpText().split("\n")[line - 1];
     }
 
@@ -63,7 +79,7 @@ public class FJ2RCommandExecutor {
     }
 
     @SuppressWarnings("deprecation")
-    public static boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         log.debug("onCommand: Sender=%s, Command=%s, label=%s, args=%s", sender.getName(), command.getName(), label, args);
 
         var isContainsCommand = false;
@@ -77,7 +93,7 @@ public class FJ2RCommandExecutor {
         if (!isContainsCommand || args[0].equalsIgnoreCase(cmd(FJ2RCommand.HELP))) {
             if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.HELP)))
                 NoPermissionLvlException.send();
-            Messages.sendMessage(false, sender, getHelpText());
+            messages.sendMessage(false, sender, getHelpText());
             return true;
         }
 
@@ -85,7 +101,7 @@ public class FJ2RCommandExecutor {
         if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.RELOAD))) {
             if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.RELOAD)))
                 NoPermissionLvlException.send();
-            Configs.reloadConfig(sender);
+            configs.reload(sender);
             return true;
         }
 
@@ -93,7 +109,7 @@ public class FJ2RCommandExecutor {
         if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.CHECK_UPDATE))) {
             if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.CHECK_UPDATE)))
                 NoPermissionLvlException.send();
-            Version.checkUpdate(sender);
+            updateChecker.check(sender);
             return true;
         }
 
@@ -104,29 +120,29 @@ public class FJ2RCommandExecutor {
 
             // if args is empty should send how to use this cmd
             if (args.length == 1) {
-                Messages.sendMessage(sender, getHelpLine(7));
+                messages.sendMessage(sender, getHelpLine(7));
                 return true;
             }
 
             if (!(sender instanceof Player player)) {
-                Messages.sendMessage(Configs.getMessage().getCmdPlayerOnly());
+                messages.sendMessage(configs.message().getCmdPlayerOnly());
                 return true;
             }
 
-            val item = PlayerUtil.getItemInHand(player);
+            val item = items.itemInHand(player);
             if (item == null) {
-                Messages.sendMessage(Configs.getMessage().getNoItemInMainHand());
+                messages.sendMessage(configs.message().getNoItemInMainHand());
                 return true;
             }
 
-            ItemUtil.setItemAsJetpack(sender, item, args[1], args.length == 3 ? Long.parseLong(args[2]) : 0)
+            items.setItemAsJetpack(sender, item, args[1], args.length == 3 ? Long.parseLong(args[2]) : 0)
                .onSuccess(result -> {
                    if (Version.getServerVersion() > 11)
                        player.getInventory().setItemInMainHand(result);
                    else
                        //noinspection deprecation
                        player.setItemInHand(result);
-                   Messages.sendMessage(sender, Configs.getMessage().getCmdSet()
+                   messages.sendMessage(sender, configs.message().getCmdSet()
                            .replace(Placeholder.JETPACK, args[1])
                            .replace(Placeholder.FUEL_VALUE, String.valueOf(args.length == 3 ? args[2] : 0))
                    );
@@ -141,17 +157,17 @@ public class FJ2RCommandExecutor {
                 NoPermissionLvlException.send();
 
             if (args.length == 1) {
-                Messages.sendMessage(sender, getHelpLine(5));
+                messages.sendMessage(sender, getHelpLine(5));
                 return true;
             }
 
             val jetpackId = Arrays.stream(args)
-                    .filter(arg -> Configs.getJetpacksLoaded().get(arg) != null)
+                    .filter(arg -> configs.jetpacks().get(arg) != null)
                     .findFirst()
                     .orElse(null);
 
             if (jetpackId == null) {
-                Messages.sendMessage(sender, "&cJetpack didn't exist");
+                messages.sendMessage(sender, "&cJetpack didn't exist");
                 return true;
             }
 
@@ -160,7 +176,7 @@ public class FJ2RCommandExecutor {
                     .filter(Objects::nonNull)
                     .findFirst().orElseGet(() -> {
                         if (!(sender instanceof Player)) {
-                            Messages.sendMessage(Configs.getMessage().getCmdPlayerOnly());
+                            messages.sendMessage(configs.message().getCmdPlayerOnly());
                             return null;
                         }
                         return (Player) sender;
@@ -173,23 +189,23 @@ public class FJ2RCommandExecutor {
                     .map(NumberUtils::toInt)
                     .findFirst().orElse(0);
 
-            val result = ItemUtil.createJetpackItem(sender, jetpackId, fuelAmount);
+            val result = items.createJetpackItem(sender, jetpackId, fuelAmount);
             result.onSuccess(item -> {
                 addItemToInventory(targetPlayer, item);
 
                 if (sender == targetPlayer) {
-                    Messages.sendMessage(sender,Configs.getMessage().getCmdGetSelf()
+                    messages.sendMessage(sender, configs.message().getCmdGetSelf()
                             .replace(Placeholder.JETPACK, jetpackId)
                             .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount)));
                     return;
                 }
 
-                Messages.sendMessage(sender, Configs.getMessage().getCmdGiveSuccess()
+                messages.sendMessage(sender, configs.message().getCmdGiveSuccess()
                         .replace(Placeholder.JETPACK, jetpackId)
                         .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount))
                         .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
                 );
-                Messages.sendMessage(targetPlayer, Configs.getMessage().getCmdGiveReceived()
+                messages.sendMessage(targetPlayer, configs.message().getCmdGiveReceived()
                         .replace(Placeholder.JETPACK, jetpackId)
                         .replace(Placeholder.FUEL_VALUE, String.valueOf(fuelAmount))
                         .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
@@ -206,36 +222,36 @@ public class FJ2RCommandExecutor {
 
             // if args is empty should send how to use this cmd
             if (args.length == 1) {
-                Messages.sendMessage(sender, getHelpLine(8));
+                messages.sendMessage(sender, getHelpLine(8));
                 return true;
             }
 
             if (!(sender instanceof Player player)) {
-                Messages.sendMessage(Configs.getMessage().getCmdPlayerOnly());
+                messages.sendMessage(configs.message().getCmdPlayerOnly());
                 return true;
             }
 
-            val item = PlayerUtil.getItemInHand(player);
+            val item = items.itemInHand(player);
             if (item == null) {
-                Messages.sendMessage(Configs.getMessage().getNoItemInMainHand());
+                messages.sendMessage(configs.message().getNoItemInMainHand());
                 return true;
             }
 
             val fuelAmount = NumberUtils.toLong(args[1], 0);
 
-            val jetpackId = ItemMetaData.getJetpackID(item, "");
+            val jetpackId = items.jetpackIdOf(item);
             if (jetpackId.isEmpty()) {
-                Messages.sendMessage(sender, Configs.getMessage().getNotJetpackItem());
+                messages.sendMessage(sender, configs.message().getNotJetpackItem());
                 return true;
             }
 
-            ItemUtil.setItemAsJetpack(sender, item, jetpackId, fuelAmount)
+            items.setItemAsJetpack(sender, item, jetpackId, fuelAmount)
             .onSuccess(result -> {
                 if (Version.getServerVersion() > 11)
                     player.getInventory().setItemInMainHand(result);
                 else
                     player.setItemInHand(result);
-                Messages.sendMessage(sender, Configs.getMessage().getCmdFuelSet()
+                messages.sendMessage(sender, configs.message().getCmdFuelSet()
                         .replace(Placeholder.AMOUNT, String.valueOf(fuelAmount))
                 );
             }).throwIfError();
@@ -249,17 +265,17 @@ public class FJ2RCommandExecutor {
                 NoPermissionLvlException.send();
 
             if (args.length == 1) {
-                Messages.sendMessage(sender, getHelpLine(6));
+                messages.sendMessage(sender, getHelpLine(6));
                 return true;
             }
 
             val customFuelId = Arrays.stream(args)
-                    .filter(arg -> Configs.getCustomFuelLoaded().get(arg) != null)
+                    .filter(arg -> configs.customFuels().get(arg) != null)
                     .findFirst()
                     .orElse(null);
 
             if (customFuelId == null) {
-                Messages.sendMessage(sender, "&cInvalid custom fuel id!");
+                messages.sendMessage(sender, "&cInvalid custom fuel id!");
                 return true;
             }
 
@@ -268,7 +284,7 @@ public class FJ2RCommandExecutor {
                     .filter(Objects::nonNull)
                     .findFirst().orElseGet(() -> {
                         if (!(sender instanceof Player)) {
-                            Messages.sendMessage(Configs.getMessage().getCmdPlayerOnly());
+                            messages.sendMessage(configs.message().getCmdPlayerOnly());
                             return null;
                         }
                         return (Player) sender;
@@ -281,12 +297,12 @@ public class FJ2RCommandExecutor {
                     .map(NumberUtils::toInt)
                     .findFirst().orElse(1);
 
-            val result = ItemUtil.createCustomFuelItem(sender, customFuelId, amount);
+            val result = items.createCustomFuelItem(sender, customFuelId, amount);
             result.onSuccess(item -> {
                 addItemToInventory(targetPlayer, item);
 
                 if (sender == targetPlayer) {
-                    Messages.sendMessage(sender, Configs.getMessage().getCmdFuelGiveSuccess()
+                    messages.sendMessage(sender, configs.message().getCmdFuelGiveSuccess()
                             .replace(Placeholder.CUSTOM_FUEL, customFuelId)
                             .replace(Placeholder.AMOUNT, String.valueOf(amount))
                             .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
@@ -295,12 +311,12 @@ public class FJ2RCommandExecutor {
                     return;
                 }
 
-                Messages.sendMessage(sender, Configs.getMessage().getCmdFuelGiveSuccess()
+                messages.sendMessage(sender, configs.message().getCmdFuelGiveSuccess()
                         .replace(Placeholder.CUSTOM_FUEL, customFuelId)
                         .replace(Placeholder.AMOUNT, String.valueOf(amount))
                         .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
                 );
-                Messages.sendMessage(targetPlayer, Configs.getMessage().getCmdFuelGiveReceived()
+                messages.sendMessage(targetPlayer, configs.message().getCmdFuelGiveReceived()
                         .replace(Placeholder.CUSTOM_FUEL, customFuelId)
                         .replace(Placeholder.AMOUNT, String.valueOf(amount))
                         .replace(Placeholder.PLAYER, targetPlayer.getDisplayName())
@@ -315,13 +331,13 @@ public class FJ2RCommandExecutor {
         return true;
     }
 
-    private static void addItemToInventory(@NotNull Player targetPlayer, @NotNull ItemStack item) {
+    private void addItemToInventory(@NotNull Player targetPlayer, @NotNull ItemStack item) {
         val items = targetPlayer.getInventory().addItem(item);
         // drop if inventory is full!
         items.forEach((index, itemStack) -> {
             val location = targetPlayer.getLocation();
             targetPlayer.getWorld().dropItemNaturally(location, itemStack);
-            Messages.sendMessage(targetPlayer, Configs.getMessage().getInventoryFull()
+            messages.sendMessage(targetPlayer, configs.message().getInventoryFull()
                     .replace(Placeholder.X, String.valueOf(location.getX()))
                     .replace(Placeholder.Y, String.valueOf(location.getY()))
                     .replace(Placeholder.Z, String.valueOf(location.getZ()))

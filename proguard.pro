@@ -33,7 +33,7 @@
 }
 # Remove logs
 -assumenosideeffects class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.logging.Log {
-    public static *** log(...);
+    public *** log(...);
     public *** debug(...);
 }
 # keep event's

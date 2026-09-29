@@ -1,11 +1,11 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.event;
 
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.Configs;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.FJ2RPlayer;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.config.YamlConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.data.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.enums.JetpackEvent;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.Messages;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.message.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.util.Permissions;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -16,12 +16,23 @@ import org.jetbrains.annotations.Nullable;
 
 public class OnPlayerDiedEvent {
 
+    private final PlayerRegistry players;
+    private final YamlConfigRepository configs;
+    private final MessageSink messages;
 
-    public static void onDied(@NotNull PlayerDeathEvent e) {
+    public OnPlayerDiedEvent(@NotNull PlayerRegistry players,
+                             @NotNull YamlConfigRepository configs,
+                             @NotNull MessageSink messages) {
+        this.players = players;
+        this.configs = configs;
+        this.messages = messages;
+    }
+
+    public void onDied(@NotNull PlayerDeathEvent e) {
         if (e.getEntityType() != EntityType.PLAYER) return;
 
         val player = (Player) e.getEntity();
-        val fj2RPlayer = FJ2RPlayer.getAsFJ2RPlayer(player);
+        val fj2RPlayer = players.of(player);
         if (!fj2RPlayer.isActive()) return;
         if (fj2RPlayer.getJetpack() == null || fj2RPlayer.getJetpack().getOnDeath() == JetpackEvent.NONE) return;
         if (Permissions.hasRawPermission(player, fj2RPlayer.getJetpack().getPermission(Permissions.PERMISSION_KEEP_ON_DEATH_SUFFIX))) return;
@@ -40,20 +51,19 @@ public class OnPlayerDiedEvent {
         fj2RPlayer.updateActiveJetpackArmorEquipment(item -> onDeathEvent(item, player, fj2RPlayer.getJetpack()));
     }
 
-    private static @Nullable ItemStack onDeathEvent(@NotNull ItemStack item, @NotNull Player player, @NotNull Jetpack jetpack) {
+    private @Nullable ItemStack onDeathEvent(@NotNull ItemStack item, @NotNull Player player, @NotNull Jetpack jetpack) {
         return switch (jetpack.getOnDeath()) {
             case NONE -> item;
             case REMOVE -> {
-                Messages.sendMessage(player, Configs.getMessage().getOnDeathRemoved());
+                messages.send(player, configs.message().getOnDeathRemoved());
                 yield null;
             }
             case DROP -> {
                 player.getWorld().dropItemNaturally(player.getLocation(), item.clone());
-                Messages.sendMessage(player, Configs.getMessage().getOnDeathDropped());
+                messages.send(player, configs.message().getOnDeathDropped());
                 yield null;
             }
         };
     }
-
 
 }
