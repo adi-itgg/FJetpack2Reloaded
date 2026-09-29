@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping.ConfigValueMappers;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.CommandCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.NoArgsCommandCompleter;
@@ -46,6 +47,12 @@ public class PluginFactory {
     @Bean
     MessageSink messageSink(Messages messages) {
         return messages;
+    }
+
+    /** Built from a static factory, so the generator cannot derive it. */
+    @Bean
+    ConfigValueMappers configValueMappers() {
+        return ConfigValueMappers.defaults();
     }
 
     /** Subcommands without further arguments; its varargs constructor is not injectable. */

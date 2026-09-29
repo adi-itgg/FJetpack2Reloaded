@@ -45,7 +45,7 @@ public class Jetpack {
         return "Jetpack{" +
                 "id='" + id + '\'' +
                 ", displayName='" + displayName + '\'' +
-                ", permission=" + permission.getName() +
+                ", permission=" + (permission != null ? permission.getName() : "none") +
                 ", item=" + item +
                 ", itemColor=" + itemColor +
                 ", lore=" + lore +

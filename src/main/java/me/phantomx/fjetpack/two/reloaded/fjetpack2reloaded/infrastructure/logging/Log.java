@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class Log {
 
-    private static final boolean DEBUG = Bukkit.getMotd().contains("[DEV-FJ2R-DEBUG]");
+    private static Boolean debug;
 
     private final String tag;
     private final MessageSink messages;
@@ -22,8 +22,21 @@ public class Log {
         this.messages = messages;
     }
 
+    /**
+     * Read once, on first use. A static initializer that talks to the server would run at an
+     * arbitrary time; here the check also survives running without a server (unit tests), where
+     * debug logging is simply off.
+     */
+    private static boolean isDebug() {
+        if (debug == null) {
+            val server = Bukkit.getServer();
+            debug = server != null && server.getMotd().contains("[DEV-FJ2R-DEBUG]");
+        }
+        return debug;
+    }
+
     public void log(@Nullable Object message, Object... args) {
-        if (!DEBUG) return;
+        if (!isDebug()) return;
         if (message instanceof String text) {
             messages.sendToConsole(text, args);
             return;

@@ -29,7 +29,7 @@ public class CustomFuel {
                 ", displayName='" + displayName + '\'' +
                 ", lore=" + lore +
                 ", item=" + item +
-                ", permission=" + permission.getName() +
+                ", permission=" + (permission != null ? permission.getName() : "none") +
                 ", glowing=" + glowing +
                 ", customModelData=" + customModelData +
                 '}';
