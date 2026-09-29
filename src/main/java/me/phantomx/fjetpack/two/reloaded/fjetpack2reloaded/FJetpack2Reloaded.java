@@ -4,6 +4,12 @@ import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackGrant;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.CommandTabCompleter;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.GetOrGiveCommandCompleter;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.GetOrGiveFuelCommandCompleter;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.NoArgsCommandCompleter;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.SetCommandCompleter;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.completer.SetFuelCommandCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommandExecutor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
@@ -56,7 +62,13 @@ public class FJetpack2Reloaded extends JavaPlugin {
         this.updateChecker = new UpdateChecker(this, messages);
         val grant = new JetpackGrant(configs, messages, items);
         this.commandExecutor = new FJ2RCommandExecutor(this, configs, messages, items, grant, updateChecker);
-        this.tabCompleter = new CommandTabCompleter(configs, messages);
+        this.tabCompleter = new CommandTabCompleter(messages, List.of(
+                new NoArgsCommandCompleter(FJ2RCommand.HELP, FJ2RCommand.RELOAD, FJ2RCommand.CHECK_UPDATE),
+                new SetCommandCompleter(configs),
+                new SetFuelCommandCompleter(),
+                new GetOrGiveCommandCompleter(configs),
+                new GetOrGiveFuelCommandCompleter(configs)
+        ));
 
         val serverSupported = Version.isServerSupport(messages, itemTags);
         log.log("is server support: %b", serverSupported);

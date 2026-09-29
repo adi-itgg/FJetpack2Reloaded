@@ -81,10 +81,6 @@ public class FJ2RCommandExecutor {
         return getHelpText().split("\n")[line - 1];
     }
 
-    public static @NotNull String cmd(@NotNull FJ2RCommand cmd) {
-        return cmd.name().replace("_", "").toLowerCase();
-    }
-
     @SuppressWarnings("deprecation")
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         log.debug("onCommand: Sender=%s, Command=%s, label=%s, args=%s", sender.getName(), command.getName(), label, args);
@@ -92,37 +88,37 @@ public class FJ2RCommandExecutor {
         var isContainsCommand = false;
         if (args.length > 0)
             for (FJ2RCommand cmd : FJ2RCommand.values()) {
-                isContainsCommand = cmd(cmd).equalsIgnoreCase(args[0]);
+                isContainsCommand = cmd.literal().equalsIgnoreCase(args[0]);
                 if (isContainsCommand) break;
             }
 
         // cmd help
-        if (!isContainsCommand || args[0].equalsIgnoreCase(cmd(FJ2RCommand.HELP))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.HELP)))
+        if (!isContainsCommand || args[0].equalsIgnoreCase(FJ2RCommand.HELP.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.HELP.literal()))
                 NoPermissionLvlException.send();
             messages.sendMessage(false, sender, getHelpText());
             return true;
         }
 
         // cmd reload
-        if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.RELOAD))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.RELOAD)))
+        if (args[0].equalsIgnoreCase(FJ2RCommand.RELOAD.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.RELOAD.literal()))
                 NoPermissionLvlException.send();
             configs.reload(sender);
             return true;
         }
 
         // cmd check update
-        if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.CHECK_UPDATE))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.CHECK_UPDATE)))
+        if (args[0].equalsIgnoreCase(FJ2RCommand.CHECK_UPDATE.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.CHECK_UPDATE.literal()))
                 NoPermissionLvlException.send();
             updateChecker.check(sender);
             return true;
         }
 
         // cmd set
-        if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.SET))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.SET)))
+        if (args[0].equalsIgnoreCase(FJ2RCommand.SET.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.SET.literal()))
                 NoPermissionLvlException.send();
 
             // if args is empty should send how to use this cmd
@@ -159,8 +155,8 @@ public class FJ2RCommandExecutor {
         }
 
         // cmd get/give
-        if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.GET)) || args[0].equalsIgnoreCase(cmd(FJ2RCommand.GIVE))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.GET)) && !Permissions.hasPermission(sender, cmd(FJ2RCommand.GIVE)))
+        if (args[0].equalsIgnoreCase(FJ2RCommand.GET.literal()) || args[0].equalsIgnoreCase(FJ2RCommand.GIVE.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.GET.literal()) && !Permissions.hasPermission(sender, FJ2RCommand.GIVE.literal()))
                 NoPermissionLvlException.send();
 
             if (args.length == 1) {
@@ -191,8 +187,8 @@ public class FJ2RCommandExecutor {
         }
 
         // cmd setfuel
-        if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.SET_FUEL))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.SET_FUEL)))
+        if (args[0].equalsIgnoreCase(FJ2RCommand.SET_FUEL.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.SET_FUEL.literal()))
                 NoPermissionLvlException.send();
 
             // if args is empty should send how to use this cmd
@@ -235,8 +231,8 @@ public class FJ2RCommandExecutor {
         }
 
         // cmd get/give fuel
-        if (args[0].equalsIgnoreCase(cmd(FJ2RCommand.GET_FUEL)) || args[0].equalsIgnoreCase(cmd(FJ2RCommand.GIVE_FUEL))) {
-            if (!Permissions.hasPermission(sender, cmd(FJ2RCommand.GET_FUEL)) && !Permissions.hasPermission(sender, cmd(FJ2RCommand.GIVE_FUEL)))
+        if (args[0].equalsIgnoreCase(FJ2RCommand.GET_FUEL.literal()) || args[0].equalsIgnoreCase(FJ2RCommand.GIVE_FUEL.literal())) {
+            if (!Permissions.hasPermission(sender, FJ2RCommand.GET_FUEL.literal()) && !Permissions.hasPermission(sender, FJ2RCommand.GIVE_FUEL.literal()))
                 NoPermissionLvlException.send();
 
             if (args.length == 1) {
