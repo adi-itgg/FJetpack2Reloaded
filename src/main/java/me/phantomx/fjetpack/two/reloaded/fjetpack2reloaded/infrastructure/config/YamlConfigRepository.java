@@ -21,6 +21,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -45,8 +46,9 @@ public class YamlConfigRepository implements ConfigRepository {
     private final CustomFuelConfigLoader customFuelLoader;
     private final JetpackConfigLoader jetpackLoader;
 
-    private Config config;
-    private Message message;
+    /** Seeded, never null: a file that fails to load must not leave the repository unreadable. */
+    private Config config = new Config();
+    private Message message = new Message();
     private Map<String, Jetpack> jetpacks = Collections.emptyMap();
     private Map<String, CustomFuel> customFuels = Collections.emptyMap();
 
@@ -74,24 +76,36 @@ public class YamlConfigRepository implements ConfigRepository {
      * becomes available while loading message.yml.
      */
     public void reload(@NotNull CommandSender sender) {
-        reloadSingle(sender, pluginConfigLoader, loaded -> config = loaded);
-        reloadSingle(sender, messageConfigLoader, loaded -> {
-            message = loaded;
-            // an empty message.yml must not replace the built in prefix with "null"
-            if (loaded != null && loaded.getPrefix() != null) messages.usePrefix(loaded.getPrefix());
-        });
+        reloadSingle(sender, pluginConfigLoader, this::useLoadedConfig);
+        reloadSingle(sender, messageConfigLoader, this::useLoadedMessage);
         reloadEntries(sender, customFuelLoader, loaded -> customFuels = loaded);
         reloadEntries(sender, jetpackLoader, loaded -> jetpacks = loaded);
     }
 
     @Override
-    public Config config() {
+    public @NotNull Config config() {
         return config;
     }
 
     @Override
-    public Message message() {
+    public @NotNull Message message() {
         return message;
+    }
+
+    /**
+     * A failed or empty file keeps whatever is already in use - the built in default on the very
+     * first load. Replacing a working config with null is how a broken file used to take the
+     * plugin down later, at the first message it tried to send.
+     */
+    private void useLoadedConfig(@Nullable Config loaded) {
+        if (loaded != null) config = loaded;
+    }
+
+    private void useLoadedMessage(@Nullable Message loaded) {
+        if (loaded == null) return;
+        message = loaded;
+        // an empty prefix means "not configured": keep the built in one instead of blanking it
+        if (!loaded.getPrefix().isEmpty()) messages.usePrefix(loaded.getPrefix());
     }
 
     @Override

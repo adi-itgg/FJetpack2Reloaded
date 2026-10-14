@@ -102,6 +102,7 @@ class ConfigLoadersTest {
 
         @Override
         public void send(CommandSender target, String message, Object... args) {
+            if (message == null || message.isEmpty()) return;
             target.sendMessage(String.format(message, args));
         }
 

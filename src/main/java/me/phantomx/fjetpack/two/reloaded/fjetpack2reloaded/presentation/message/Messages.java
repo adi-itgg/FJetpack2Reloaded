@@ -9,6 +9,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -26,16 +27,16 @@ public class Messages implements MessageSink {
     }
 
     @Override
-    public void send(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
+    public void send(@NotNull CommandSender target, @Nullable String message, Object @NotNull ... args) {
         sendMessage(target, message, args);
     }
 
-    public void sendMessage(@NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
+    public void sendMessage(@NotNull CommandSender target, @Nullable String message, Object @NotNull ... args) {
         sendMessage(true, target, message, args);
     }
 
-    public void sendMessage(boolean withPrefix, @NotNull CommandSender target, @NotNull String message, Object @NotNull ... args) {
-        if (message.isEmpty()) return;
+    public void sendMessage(boolean withPrefix, @NotNull CommandSender target, @Nullable String message, Object @NotNull ... args) {
+        if (message == null || message.isEmpty()) return;
         val effectivePrefix = prefix + " ";
         message = ColorText.translate(withPrefix ? effectivePrefix + message : message);
         if (args.length == 0) {
@@ -48,14 +49,8 @@ public class Messages implements MessageSink {
                 convertedArgs.add(ExceptionUtils.getStackTrace((Throwable) arg));
                 continue;
             }
-            if (arg instanceof String[]) {
-                val sb = new StringBuilder("[");
-                for (String s : ((String[]) arg)) {
-                    if (sb.length() > 2) sb.append(", ");
-                    sb.append(s);
-                }
-                sb.append("]");
-                convertedArgs.add(sb.toString());
+            if (arg instanceof String[] array) {
+                convertedArgs.add("[" + String.join(", ", array) + "]");
                 continue;
             }
             convertedArgs.add(arg);
@@ -69,7 +64,7 @@ public class Messages implements MessageSink {
      *
      * @param args for string format like %s
      */
-    public void sendMessage(@NotNull String message, Object... args) {
+    public void sendMessage(@Nullable String message, Object... args) {
         sendMessage(true, Bukkit.getConsoleSender(), message, args);
     }
 

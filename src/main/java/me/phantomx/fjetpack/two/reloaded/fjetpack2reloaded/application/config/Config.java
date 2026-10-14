@@ -8,7 +8,7 @@ import lombok.NonNull;
 @NoArgsConstructor
 public class Config {
 
-    private @NonNull Integer version;
+    private @NonNull Integer version = 0;
     private boolean updateNotification;
 
 }
