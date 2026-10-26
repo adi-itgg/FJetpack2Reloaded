@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
@@ -11,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Singleton
 public class OnPlayerCrouchEvent {
 
     private final PlayerRegistry players;

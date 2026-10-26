@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ItemFactory;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
+@Singleton
 public class OnPlayerDamagedEvent {
 
     private final ItemFactory items;

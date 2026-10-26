@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener;
 
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.JetpackRefill;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Singleton
 public class OnPlayerInventoryClickEvent {
 
     @Getter(lazy = true)

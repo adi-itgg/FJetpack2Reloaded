@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
+import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Refuelling a jetpack by clicking a fuel item onto it inside the inventory.
  */
+@Singleton
 public class JetpackRefill {
 
     private final ConfigRepository configs;

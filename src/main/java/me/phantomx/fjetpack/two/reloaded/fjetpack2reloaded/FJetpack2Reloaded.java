@@ -8,11 +8,11 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerSup
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblockEvent;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblockHook;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.CommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommandExecutor;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.RegisterEvent;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.ListenerRegistrar;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -60,10 +60,8 @@ public class FJetpack2Reloaded extends JavaPlugin {
             return;
         }
 
-        val superiorSkyblock = beanScope.get(SuperiorSkyblockEvent.class);
-        superiorSkyblock.hook();
-        getServer().getPluginManager().registerEvents(superiorSkyblock, this);
-        getServer().getPluginManager().registerEvents(beanScope.get(RegisterEvent.class), this);
+        beanScope.get(SuperiorSkyblockHook.class).hook();
+        beanScope.get(ListenerRegistrar.class).registerAll(getServer().getPluginManager(), this);
 
         reloadAndReport(log);
 

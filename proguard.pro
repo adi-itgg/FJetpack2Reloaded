@@ -32,7 +32,7 @@
     public static ** valueOf(java.lang.String);
 }
 # Remove logs
--assumenosideeffects class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.logging.Log {
+-assumenosideeffects class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log {
     public *** log(...);
     public *** debug(...);
 }

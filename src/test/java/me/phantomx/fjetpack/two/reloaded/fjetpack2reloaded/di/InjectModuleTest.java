@@ -8,7 +8,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Protectio
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.CommandTabCompleter;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommandExecutor;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.RegisterEvent;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.ListenerRegistrar;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +43,7 @@ class InjectModuleTest {
         assertTrue(provided.contains(PlayerRegistry.class), "player registry");
         assertTrue(provided.contains(FJ2RCommandExecutor.class), "command dispatcher");
         assertTrue(provided.contains(CommandTabCompleter.class), "completion dispatcher");
-        assertTrue(provided.contains(RegisterEvent.class), "event entry point");
+        assertTrue(provided.contains(ListenerRegistrar.class), "listener registrar");
     }
 
 }

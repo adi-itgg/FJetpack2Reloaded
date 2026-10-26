@@ -1,5 +1,6 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener;
 
+import jakarta.inject.Singleton;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Permissions;
@@ -8,6 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+@Singleton
 public class OnPlayerJoinLeaveEvent {
 
     private final PlayerRegistry players;
