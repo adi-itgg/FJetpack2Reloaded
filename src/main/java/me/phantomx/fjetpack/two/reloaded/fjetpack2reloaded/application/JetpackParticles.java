@@ -2,6 +2,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import lombok.val;
 
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.flight.FlightSession;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;

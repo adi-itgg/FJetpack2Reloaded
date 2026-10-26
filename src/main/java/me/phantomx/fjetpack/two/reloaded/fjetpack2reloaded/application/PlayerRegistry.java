@@ -2,7 +2,8 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 
 import jakarta.inject.Singleton;
 import lombok.val;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.flight.FlightComposition;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.flight.FlightSession;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
@@ -26,13 +27,7 @@ public class PlayerRegistry {
 
     private final Map<UUID, FlightSession> players = new WeakHashMap<>();
 
-    private final JavaPlugin plugin;
-    private final ConfigRepository configs;
-    private final MessageSink messages;
-    private final ItemTags itemTags;
-    private final ProtectionGuard protection;
-    private final ItemFactory items;
-    private final ServerVersion version;
+    private final FlightComposition composition;
 
     public PlayerRegistry(@NotNull JavaPlugin plugin,
                           @NotNull ConfigRepository configs,
@@ -41,20 +36,14 @@ public class PlayerRegistry {
                           @NotNull ProtectionGuard protection,
                           @NotNull ItemFactory items,
                           @NotNull ServerVersion version) {
-        this.plugin = plugin;
-        this.configs = configs;
-        this.messages = messages;
-        this.itemTags = itemTags;
-        this.protection = protection;
-        this.items = items;
-        this.version = version;
+        this.composition = new FlightComposition(plugin, configs, messages, itemTags, protection, items, version);
     }
 
     /** State of the player, created on first use. */
     public @NotNull FlightSession of(@NotNull Player player) {
         var fj2RPlayer = players.get(player.getUniqueId());
         if (fj2RPlayer == null) {
-            fj2RPlayer = new FlightSession(player, this, plugin, configs, messages, itemTags, protection, items, version);
+            fj2RPlayer = new FlightSession(player, this, composition);
             players.put(player.getUniqueId(), fj2RPlayer);
         }
         fj2RPlayer.setPlayer(player);
