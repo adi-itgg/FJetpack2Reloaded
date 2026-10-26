@@ -15,6 +15,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.RegisterEvent;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.message.Messages;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -64,7 +65,7 @@ public class FJetpack2Reloaded extends JavaPlugin {
         getServer().getPluginManager().registerEvents(superiorSkyblock, this);
         getServer().getPluginManager().registerEvents(beanScope.get(RegisterEvent.class), this);
 
-        configs.reload();
+        reloadAndReport(log);
 
         new Metrics(this, METRICS_ID);
     }
@@ -73,6 +74,31 @@ public class FJetpack2Reloaded extends JavaPlugin {
     public void onDisable() {
         players.clear();
         closeScope();
+    }
+
+    /**
+     * Loads the files and says out loud when the result cannot be used.
+     * <p>
+     * A broken file keeps whatever was already loaded, so a reload never breaks a running server. At
+     * startup there is no "already loaded" to fall back on: every jetpack comes from jetpack.yml, so
+     * a file that does not map leaves the plugin running with nothing to fly with.
+     * <p>
+     * It stays enabled on purpose. Disabling would also disable {@code /fj2r reload}, which is the
+     * one command that fixes the situation - so the failure is reported, and the server keeps a way
+     * out of it.
+     */
+    private void reloadAndReport(@NotNull Log log) {
+        configs.reload();
+
+        val failed = configs.failedFiles();
+        if (failed.isEmpty() && !configs.jetpacks().isEmpty()) return;
+
+        log.log("config problems: failed=%s, jetpacks=%d", failed, configs.jetpacks().size());
+        messages.send(Bukkit.getConsoleSender(),
+                "&cNo jetpack could be loaded%s. Check the files in &6%s&c, then run &6/fj2r reload&c.",
+                failed.isEmpty() ? "" : " (could not read " + failed + ")",
+                getDataFolder()
+        );
     }
 
     /** Closing twice is never needed: the scope is dropped once it has been closed. */

@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -52,6 +54,9 @@ public class YamlConfigRepository implements ConfigRepository {
     private Map<String, Jetpack> jetpacks = Collections.emptyMap();
     private Map<String, CustomFuel> customFuels = Collections.emptyMap();
 
+    /** Files the last load could not read, reported to whoever asked for the reload. */
+    private List<String> failedFiles = List.of();
+
     public YamlConfigRepository(@NotNull JavaPlugin plugin,
                                 @NotNull MessageSink messages,
                                 @NotNull PluginConfigLoader pluginConfigLoader,
@@ -76,10 +81,23 @@ public class YamlConfigRepository implements ConfigRepository {
      * becomes available while loading message.yml.
      */
     public void reload(@NotNull CommandSender sender) {
-        reloadSingle(sender, pluginConfigLoader, this::useLoadedConfig);
-        reloadSingle(sender, messageConfigLoader, this::useLoadedMessage);
-        reloadEntries(sender, customFuelLoader, loaded -> customFuels = loaded);
-        reloadEntries(sender, jetpackLoader, loaded -> jetpacks = loaded);
+        val failed = new ArrayList<String>();
+        reloadSingle(sender, failed, pluginConfigLoader, this::useLoadedConfig);
+        reloadSingle(sender, failed, messageConfigLoader, this::useLoadedMessage);
+        reloadEntries(sender, failed, customFuelLoader, loaded -> customFuels = loaded);
+        reloadEntries(sender, failed, jetpackLoader, loaded -> jetpacks = loaded);
+        this.failedFiles = List.copyOf(failed);
+    }
+
+    /**
+     * Files the last load could not read. Empty when everything was fine.
+     * <p>
+     * A reload keeps serving whatever was already in use, so the caller decides what a broken file
+     * means: with no jetpack loaded there is nothing to fly with, and the plugin says so instead of
+     * running as a no-op.
+     */
+    public @NotNull List<String> failedFiles() {
+        return failedFiles;
     }
 
     @Override
@@ -119,6 +137,7 @@ public class YamlConfigRepository implements ConfigRepository {
     }
 
     private <T> void reloadSingle(@NotNull CommandSender sender,
+                                  @NotNull List<String> failed,
                                   @NotNull ConfigLoader.Single<T> loader,
                                   @NotNull Consumer<T> apply) {
         Catcher.create(() -> loader.load(read(loader.file()), support(sender)))
@@ -126,10 +145,11 @@ public class YamlConfigRepository implements ConfigRepository {
                     apply.accept(loaded);
                     messages.send(sender, "Loaded &6%s&a", loader.file());
                 })
-                .onFailure(error -> messages.send(sender, "&cError while load %s: %s", loader.file(), error));
+                .onFailure(error -> report(sender, failed, loader.file(), error));
     }
 
     private <T> void reloadEntries(@NotNull CommandSender sender,
+                                   @NotNull List<String> failed,
                                    @NotNull ConfigLoader.Entries<T> loader,
                                    @NotNull Consumer<Map<String, T>> apply) {
         Catcher.create(() -> loader.load(read(loader.file()), support(sender)))
@@ -137,7 +157,16 @@ public class YamlConfigRepository implements ConfigRepository {
                     apply.accept(loaded);
                     messages.send(sender, "Loaded &6%s&a", loader.file());
                 })
-                .onFailure(error -> messages.send(sender, "&cError while load %s: %s", loader.file(), error));
+                .onFailure(error -> report(sender, failed, loader.file(), error));
+    }
+
+    /** A file that could not be read is both reported now and remembered for the caller. */
+    private void report(@NotNull CommandSender sender,
+                        @NotNull List<String> failed,
+                        @NotNull String file,
+                        @NotNull Throwable error) {
+        failed.add(file);
+        messages.send(sender, "&cError while load %s: %s", file, error);
     }
 
     private @NotNull LoadSupport support(@NotNull CommandSender sender) {
