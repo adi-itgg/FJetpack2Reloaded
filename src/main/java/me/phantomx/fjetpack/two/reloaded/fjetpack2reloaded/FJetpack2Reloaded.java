@@ -41,7 +41,11 @@ public class FJetpack2Reloaded extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Avaje discovers the generated module through META-INF/services with the class loader it is
+        // given. Under a server the thread context loader belongs to the server, which cannot see this
+        // plugin's jar - the lookup then finds no module and every bean is missing.
         this.beanScope = BeanScope.builder()
+                .classLoader(getClass().getClassLoader())
                 .bean(PluginFactory.Initiator.class, new PluginFactory.Initiator(this))
                 .build();
 
