@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 public class ServerSupport {
 
+    /** Written and read back by the self-check; must never be mistaken for a real jetpack id. */
+    private static final String SUPPORT_PROBE = "fj2r-support-probe";
+
     private final ServerVersion version;
     private final ItemTags itemTags;
     private final MessageSink messages;
@@ -40,13 +43,13 @@ public class ServerSupport {
         }
         if (version.getServerVersion() > 17) {
             val armor = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
-            val storedValue = itemTags.getJetpackID(itemTags.setJetpack(armor, version.getNmsApiVersion()), "");
-            if (!storedValue.equals(version.getNmsApiVersion())) {
+            val storedValue = itemTags.getJetpackID(itemTags.setJetpack(armor, SUPPORT_PROBE), "");
+            if (!SUPPORT_PROBE.equals(storedValue)) {
                 messages.sendToConsole("&cUnsupported server api version!");
                 return false;
             }
         }
-        messages.sendToConsole("&6Detected Server: &a%s v%d - API %s", Bukkit.getName(), version.getServerVersion(), version.getNmsApiVersion());
+        messages.sendToConsole("&6Detected Server: &a%s v%d - %s", Bukkit.getName(), version.getServerVersion(), Bukkit.getBukkitVersion());
         return true;
     }
 

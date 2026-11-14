@@ -104,24 +104,11 @@ public class ItemTagCodec implements ItemTags {
         return putString(itemStack, key, null);
     }
 
-    @SneakyThrows
     @Override
     public boolean isNotItemArmor(@NotNull ItemStack item) {
-        val craftItem = Class.forName(String.format("org.bukkit.craftbukkit.%s.inventory.CraftItemStack", version.getNmsApiVersion()));
-        val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
-        val nmsItem = asNMSCopy.invoke(craftItem, item);
-        val itm = nmsItem.getClass().getMethod(version.getServerVersion() > 17 ? "c" : "getItem").invoke(nmsItem);
-        var isNotArmor = !itm.getClass().getName().equals(
-                version.getServerVersion() > 16
-                        ? "net.minecraft.world.item.ItemArmor"
-                        : String.format("net.minecraft.server.%s.ItemArmor", version.getNmsApiVersion())
-        );
-        if (isNotArmor)
-            isNotArmor = switch (item.getType()) {
-                case LEATHER_HELMET, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_BOOTS -> false;
-                default -> true;
-            };
-        return isNotArmor;
+        // Material names are stable across versions. The old NMS ItemArmor check is gone from
+        // 1.20.5+ and its class name never resolves on a flattened CraftBukkit package.
+        return !isItemArmorFast(item);
     }
 
     @Override
@@ -131,6 +118,15 @@ public class ItemTagCodec implements ItemTags {
                 || typeNameString.endsWith("_CHESTPLATE")
                 || typeNameString.endsWith("_LEGGINGS")
                 || typeNameString.endsWith("_BOOTS");
+    }
+
+    /**
+     * Legacy CraftBukkit bridge, only reached on servers up to 1.17. The version segment is part of
+     * the package there; from 1.20.5 on the package is flattened, so an empty segment adds nothing.
+     */
+    private @NotNull Class<?> craftItemStack() throws ClassNotFoundException {
+        val api = version.getNmsApiVersion();
+        return Class.forName("org.bukkit.craftbukkit." + (api.isEmpty() ? "" : api + ".") + "inventory.CraftItemStack");
     }
 
     @SneakyThrows
@@ -149,7 +145,7 @@ public class ItemTagCodec implements ItemTags {
             return itemStack;
         }
 
-        val craftItem = Class.forName(String.format("org.bukkit.craftbukkit.%s.inventory.CraftItemStack", version.getNmsApiVersion()));
+        val craftItem = craftItemStack();
         val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
         val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
         var nbtTagCompound = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
@@ -179,7 +175,7 @@ public class ItemTagCodec implements ItemTags {
             val persistentData = itemMeta.getPersistentDataContainer();
             return persistentData.getOrDefault(namespacedKey, PersistentDataType.STRING, defaultValue);
         }
-        val craftItem = Class.forName(String.format("org.bukkit.craftbukkit.%s.inventory.CraftItemStack", version.getNmsApiVersion()));
+        val craftItem = craftItemStack();
         val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
         val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
         val nbt = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);

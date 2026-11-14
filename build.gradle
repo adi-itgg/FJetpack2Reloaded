@@ -61,7 +61,7 @@ dependencies {
     // already a compileOnly dependency; needed at test runtime so YamlConfiguration/ConfigurationSection exist
     testImplementation 'org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT'
     // already a compileOnly dependency (Spigot bundles it); needed at test runtime for Messages
-    testImplementation 'org.apache.commons::3.22.0'
+    testImplementation 'org.apache.commons:commons-lang3:3.22.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'

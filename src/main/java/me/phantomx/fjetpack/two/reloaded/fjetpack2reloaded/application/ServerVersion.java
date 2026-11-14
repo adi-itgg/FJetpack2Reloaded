@@ -22,8 +22,8 @@ public class ServerVersion {
     private final @NotNull String nmsApiVersion;
 
     public ServerVersion() {
-        this.serverVersion = parseServerVersion();
-        this.nmsApiVersion = parseNmsApiVersion();
+        this.serverVersion = parseServerVersion(Bukkit.getVersion());
+        this.nmsApiVersion = parseNmsApiVersion(Bukkit.getServer().getClass().getPackage().getName());
     }
 
     public int getServerVersion() {
@@ -34,31 +34,30 @@ public class ServerVersion {
         return nmsApiVersion;
     }
 
-    private static int parseServerVersion() {
-        val pattern = Pattern.compile("(?<= )([\\d.]+)(?=\\))");
-        val matcher = pattern.matcher(Bukkit.getVersion());
-        if (matcher.find()) {
-            val version = NumberUtils.toInt(matcher.group(1).split("\\.")[1], Integer.MIN_VALUE);
-            if (version != Integer.MIN_VALUE) {
-                return version;
-            }
-        }
-        val versionString = Bukkit.getVersion().split("-")[0];
-        if (versionString.contains(".")) {
-            val version = NumberUtils.toInt(versionString.split("\\.")[1], Integer.MIN_VALUE);
-            if (version != Integer.MIN_VALUE) {
-                return version;
-            }
-        }
-        return NumberUtils.toInt(versionString, 0);
+    /**
+     * The 1.x minor version (1.19.3 -&gt; 19) and, from 2.0 on, {@code major * 100 + minor}
+     * (MC 26.3 -&gt; 2603) so the new scheme compares above every 1.x gate. 0 when unreadable.
+     * <p>
+     * Package-private and string-taking so a test does not need a live server.
+     */
+    static int parseServerVersion(@NotNull String rawVersion) {
+        val matcher = Pattern.compile("(\\d+)\\.(\\d+)").matcher(rawVersion);
+        if (!matcher.find()) return 0;
+
+        val major = NumberUtils.toInt(matcher.group(1), 0);
+        val minor = NumberUtils.toInt(matcher.group(2), 0);
+        // ponytail: any MC >= 2 encodes as major*100+minor; enough for the "> N" gates.
+        // Swap for isAtLeast(major, minor) if a gate ever needs a real 2.x boundary.
+        return major == 1 ? minor : major * 100 + minor;
     }
 
-    private static @NotNull String parseNmsApiVersion() {
-        val sp = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
-        if (sp.length > 3) {
-            return sp[3];
-        }
-        return Bukkit.getServer().getVersion();
+    /**
+     * The CraftBukkit package segment ("v1_19_R3"), or "" when the package is flattened - which is
+     * every server from 1.20.5 on. Package-private and string-taking so a test needs no server.
+     */
+    static @NotNull String parseNmsApiVersion(@NotNull String serverPackage) {
+        val sp = serverPackage.split("\\.");
+        return sp.length > 3 ? sp[3] : "";
     }
 
 }
