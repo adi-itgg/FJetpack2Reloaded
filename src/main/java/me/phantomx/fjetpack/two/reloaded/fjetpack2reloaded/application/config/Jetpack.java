@@ -20,6 +20,7 @@ public class Jetpack {
     private @NonNull String displayName;
     private @NonNull Permission permission;
     private @NonNull Material item;
+    private @Nullable String itemsAdderID;
     private @Nullable ItemColor itemColor;
     private @NonNull List<String> lore = Collections.emptyList();
     private @NonNull List<String> flags = Collections.emptyList();
@@ -40,6 +41,11 @@ public class Jetpack {
         return getPermission().getName() + child;
     }
 
+    /** True when the item comes from ItemsAdder instead of the {@link #item} material. */
+    public boolean usesItemsAdder() {
+        return itemsAdderID != null && !itemsAdderID.isBlank();
+    }
+
     @Override
     public String toString() {
         return "Jetpack{" +
@@ -47,6 +53,7 @@ public class Jetpack {
                 ", displayName='" + displayName + '\'' +
                 ", permission=" + (permission != null ? permission.getName() : "none") +
                 ", item=" + item +
+                ", itemsAdderID='" + itemsAdderID + '\'' +
                 ", itemColor=" + itemColor +
                 ", lore=" + lore +
                 ", flags=" + flags +

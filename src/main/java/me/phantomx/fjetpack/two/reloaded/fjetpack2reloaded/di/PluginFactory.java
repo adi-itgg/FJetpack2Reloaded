@@ -8,12 +8,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ClaimLookup;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.CustomItems;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.IslandLookup;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping.ConfigValueMappers;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.GriefPreventionClaims;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.ItemsAdderItems;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.SuperiorSkyblockIslands;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item.ItemTagCodec;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.FJ2RCommand;
@@ -75,6 +77,11 @@ public class PluginFactory {
     @Bean
     IslandLookup islandLookup(SuperiorSkyblockIslands islands) {
         return islands;
+    }
+
+    @Bean
+    CustomItems customItems(ItemsAdderItems items) {
+        return items;
     }
 
     /** Built from a static factory, so the generator cannot derive it. */

@@ -17,7 +17,16 @@ VIP:
   # example: fjetpack2reloaded.#id -> fjetpack2reloaded.vip
   Permission: 'fjetpack2reloaded.#id'
   # The minecraft item id (Supports all items)
+  # Also the fallback when ItemsAdderID is set but cannot be used (see below)
   Item: CHAINMAIL_CHESTPLATE
+  # Optional - take the item from an ItemsAdder custom item instead of the material above.
+  # Format "namespace:id", like ItemsAdder shows it, e.g. fancypacks:jetpack_vip
+  # Leave it empty ('') or remove the key to use Item. When filled:
+  #   - ItemsAdder installed and the item exists -> that item is used
+  #   - ItemsAdder missing / id unknown / its data not loaded yet -> Item is used, with a warning
+  # Item stays required above. Use an armor-type ItemsAdder item, otherwise the jetpack cannot be
+  # worn in an armor slot.
+  ItemsAdderID: ''
   # ItemColor for leather armor only!
   # Example for colored leather armor:
   # Red armor -> R=255 G=0 B=0

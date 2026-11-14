@@ -57,6 +57,23 @@ class ConfigLoadersTest {
     }
 
     @Test
+    void itemsAdderIdIsOptionalAndABlankOneKeepsTheMaterial() {
+        var yaml = new YamlConfiguration();
+        yaml.set("VIP.Item", "CHAINMAIL_CHESTPLATE");
+        yaml.set("VIP.DisplayName", "&bVIP");
+        yaml.set("VIP.ItemsAdderID", "fancypacks:jetpack_vip");
+        yaml.set("MEMBER.Item", "LEATHER_CHESTPLATE");
+        yaml.set("MEMBER.DisplayName", "&bMember");
+        yaml.set("MEMBER.ItemsAdderID", "");
+
+        var loaded = new JetpackConfigLoader(mappers, sink).load(yaml, support);
+
+        assertEquals("fancypacks:jetpack_vip", loaded.get("VIP").getItemsAdderID());
+        assertTrue(loaded.get("VIP").usesItemsAdder(), "a filled id switches the item source");
+        assertFalse(loaded.get("MEMBER").usesItemsAdder(), "an empty id keeps the Item material");
+    }
+
+    @Test
     void customFuelsAreLoadedPerIdAndAFailureOnlyGoesToTheLog() {
         var yaml = new YamlConfiguration();
         yaml.set("CVIP.Item", "COAL");

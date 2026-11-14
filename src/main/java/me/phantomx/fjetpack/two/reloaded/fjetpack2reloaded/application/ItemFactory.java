@@ -3,6 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 import jakarta.inject.Singleton;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.CustomItems;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Jetpack;
@@ -33,15 +34,18 @@ public class ItemFactory {
     private final ItemTags itemTags;
     private final MessageSink messages;
     private final ServerVersion version;
+    private final CustomItems customItems;
 
     public ItemFactory(@NotNull ConfigRepository configs,
                        @NotNull ItemTags itemTags,
                        @NotNull MessageSink messages,
-                       @NotNull ServerVersion version) {
+                       @NotNull ServerVersion version,
+                       @NotNull CustomItems customItems) {
         this.configs = configs;
         this.itemTags = itemTags;
         this.messages = messages;
         this.version = version;
+        this.customItems = customItems;
     }
 
     public @NotNull Catcher<ItemStack> createCustomFuelItem(@NotNull CommandSender sender, @NotNull String customFuelId, int amount) {
@@ -85,7 +89,7 @@ public class ItemFactory {
                 messages.send(sender, "&cJetpack &l%s &cdidn't exist", jetpackId);
                 IMessageException.throwNow();
             }
-            val item = new ItemStack(jetpack.getItem());
+            val item = baseJetpackItem(sender, jetpack);
             val itemMeta = item.getItemMeta();
             assert itemMeta != null;
 
@@ -97,6 +101,29 @@ public class ItemFactory {
 
             return setItemAsJetpack(sender, item, jetpack.getId(), fuelValue).getOrThrow();
         });
+    }
+
+    /**
+     * What the jetpack item is built on: the ItemsAdder item when one is configured, otherwise the
+     * configured {@code Item} material.
+     * <p>
+     * ItemsAdder is optional, so a missing plugin, an unknown id or one whose data is not loaded yet
+     * reports and falls back to the material. A jetpack is never withheld because of it.
+     */
+    private @NotNull ItemStack baseJetpackItem(@NotNull CommandSender sender, @NotNull Jetpack jetpack) {
+        if (!jetpack.usesItemsAdder()) return new ItemStack(jetpack.getItem());
+
+        val itemsAdderId = jetpack.getItemsAdderID().trim();
+        val itemsAdderItem = customItems.get(itemsAdderId);
+        if (itemsAdderItem != null) return itemsAdderItem.clone();
+
+        if (customItems.isAvailable())
+            messages.send(sender, "&eItemsAdder item &6%s&e does not exist or is not loaded yet; using &6%s&e for jetpack &6%s",
+                    itemsAdderId, jetpack.getItem(), jetpack.getId());
+        else
+            messages.send(sender, "&eItemsAdder is not installed; using &6%s&e for jetpack &6%s",
+                    jetpack.getItem(), jetpack.getId());
+        return new ItemStack(jetpack.getItem());
     }
 
     public @NotNull Catcher<ItemStack> setItemAsJetpack(@NotNull CommandSender sender, @NotNull ItemStack item, @NotNull String jetpackId, long fuelValue) {

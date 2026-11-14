@@ -47,7 +47,10 @@ final class JetpackAdmission {
 
         val jetpack = configs.jetpacks().get(itemTags.getJetpackID(stack, ""));
         if (jetpack == null) return Verdict.refused(FlightCheck.NOT_A_JETPACK);
-        if (stack.getType() != jetpack.getItem()) return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        // an ItemsAdder jetpack carries whatever base material its item uses; the id tag above
+        // already told us which jetpack this is
+        if (!jetpack.usesItemsAdder() && stack.getType() != jetpack.getItem())
+            return Verdict.refused(FlightCheck.NOT_A_JETPACK);
         if (inUse != null && !jetpack.getId().equals(inUse.getId())) return Verdict.refused(FlightCheck.NOT_A_JETPACK);
 
         if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
