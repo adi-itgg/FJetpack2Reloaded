@@ -47,12 +47,12 @@ public class JetpackParticles {
             log.log("&cInvalid particle effect name: %s - details: %s", jetpack.getParticle().getEffect(), error);
         }).getOrDefault(version.getServerVersion() > 8 ? Particle.CLOUD : Effect.SMOKE);
         log.log("creating task for particle effect");
-        // main thread: spawnParticle / playEffect are not thread safe
-        Bukkit.getScheduler().runTaskTimer(plugin, bukkitTask -> {
-            // the Bukkit API returns void here, so the task handle is captured on its first run
-            if (task == null) task = bukkitTask;
+        // main thread: spawnParticle / playEffect are not thread safe.
+        // Use the Runnable overload: the Consumer<BukkitTask> overload does not exist on 1.12 and
+        // would throw NoSuchMethodError at runtime.
+        task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (!session.isActive()) {
-                bukkitTask.cancel();
+                stop();
                 return;
             }
             render(session, effect);

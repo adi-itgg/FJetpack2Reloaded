@@ -44,23 +44,43 @@ final class WornJetpack {
                 @Nullable Jetpack jetpack,
                 int uniqueId,
                 @NotNull UnaryOperator<@Nullable ItemStack> action) {
+        update(player, jetpack, uniqueId, null, action);
+    }
+
+    /**
+     * Rewrites the worn jetpack, including the stack a caller just read but has not activated yet.
+     * <p>
+     * On the legacy NMS path every tag write returns a new {@link ItemStack}; the stack passed to
+     * {@code isJetpack} is still the one in the equipment. Matching that original stack is what puts
+     * the active-tag copy back into the slot.
+     *
+     * @param target the stack the caller wants replaced, or null to match only already-active items
+     */
+    void update(@NotNull Player player,
+                @Nullable Jetpack jetpack,
+                int uniqueId,
+                @Nullable ItemStack target,
+                @NotNull UnaryOperator<@Nullable ItemStack> action) {
         val equipment = player.getEquipment();
         if (equipment == null) {
             log.debug("worn: player=%s has no equipment", player.getName());
             return;
         }
         val contents = equipment.getArmorContents();
-        log.debug("worn: player=%s uniqueId=%d jetpack=%s slots=%d", player.getName(), uniqueId,
-                jetpack == null ? "null" : jetpack.getId(), contents.length);
+        log.debug("worn: player=%s uniqueId=%d jetpack=%s slots=%d target=%s", player.getName(), uniqueId,
+                jetpack == null ? "null" : jetpack.getId(), contents.length, Log.item(target));
         val armor = new ItemStack[contents.length];
         val iterator = Arrays.stream(contents).iterator();
         var i = 0;
+        var matched = false;
         while (iterator.hasNext()) {
             var item = iterator.next();
             val active = item != null && itemTags.isActiveJetpack(item, uniqueId);
+            val targetMatch = target != null && item != null && item.isSimilar(target);
             if (log.isDebugEnabled())
-                log.debug("worn: player=%s slot=%d item=%s active=%s", player.getName(), i, Log.item(item), active);
-            if (active) {
+                log.debug("worn: player=%s slot=%d item=%s active=%s targetMatch=%s",
+                        player.getName(), i, Log.item(item), active, targetMatch);
+            if (active || targetMatch) {
                 if (version.getServerVersion() > 16) {
                     val itemMeta = item.getItemMeta();
                     if (itemMeta != null && jetpack != null) {
@@ -69,12 +89,21 @@ final class WornJetpack {
                     }
                 }
                 item = action.apply(item);
+                matched = true;
                 log.debug("worn: player=%s slot=%d rewritten to %s", player.getName(), i, Log.item(item));
             }
             armor[i] = item;
             i++;
         }
         equipment.setArmorContents(armor);
+        if (target != null && !matched) {
+            val inventory = player.getInventory();
+            val offHand = inventory.getItemInOffHand();
+            if (offHand != null && offHand.isSimilar(target)) {
+                inventory.setItemInOffHand(action.apply(offHand));
+                log.debug("worn: player=%s offhand rewritten", player.getName());
+            }
+        }
         log.debug("worn: player=%s equipment updated", player.getName());
     }
 

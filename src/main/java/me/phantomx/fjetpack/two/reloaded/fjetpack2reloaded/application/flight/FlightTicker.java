@@ -55,12 +55,13 @@ final class FlightTicker {
         log.debug("ticker.start: player=%s jetpack=%s burnRate=%ds",
                 session.getPlayer().getName(), session.getJetpack().getId(), delayInSec);
 
-        // main thread: the tick touches inventory/equipment/player state
-        Bukkit.getScheduler().runTaskTimer(plugin, bukkitTask -> {
-            if (session.getBurnTask() == null) session.setBurnTask(bukkitTask);
+        // main thread: the tick touches inventory/equipment/player state. The handle is stored now,
+        // not on the first run, so a stale "starting" flag can be told apart from a live task.
+        val task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (!session.isStarting() && !session.isActive()) {
                 log.debug("ticker: player=%s neither starting nor active -> cancel", session.getPlayer().getName());
-                bukkitTask.cancel();
+                val burnTask = session.getBurnTask();
+                if (burnTask != null) burnTask.cancel();
                 return;
             }
             log.debug("ticker: player=%s starting=%s active=%s onGround=%s flying=%s",
@@ -100,6 +101,7 @@ final class FlightTicker {
                     session.setStarting(false);
             });
         }, 0L, delayInSec * 20L);
+        session.setBurnTask(task);
     }
 
     /**

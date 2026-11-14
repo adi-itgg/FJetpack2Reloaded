@@ -141,9 +141,18 @@ public class FlightSession {
 
     @SneakyThrows
     public void updateActiveJetpackArmorEquipment(@NotNull ActionResultReturnHandler<@NotNull ItemStack, @Nullable ItemStack> action) {
+        updateJetpackArmorEquipment(null, action);
+    }
+
+    /**
+     * Rewrites the equipped jetpack; {@code target} lets an activation replace the untagged stack it
+     * just read (legacy NMS writes return a new ItemStack).
+     */
+    @SneakyThrows
+    void updateJetpackArmorEquipment(@Nullable ItemStack target, @NotNull ActionResultReturnHandler<@NotNull ItemStack, @Nullable ItemStack> action) {
         // the handler may throw Throwable; @SneakyThrows keeps that out of every caller's signature,
         // exactly as before the split
-        wornJetpack.update(getPlayer(), state.getJetpack(), state.getJetpackUniqueId(), item -> {
+        wornJetpack.update(getPlayer(), state.getJetpack(), state.getJetpackUniqueId(), target, item -> {
             try {
                 return action.action(item);
             } catch (Throwable error) {
@@ -204,10 +213,11 @@ public class FlightSession {
         if (!consumeFuel) {
             state.setJetpackUniqueId(itemTags.newItemId());
             log.debug("isJetpack: activation uniqueId=%d runIdWrite", state.getJetpackUniqueId());
+            val original = stack;
             stack = itemTags.setActiveJetpack(stack, state.getJetpackUniqueId());
             @NotNull ItemStack finalArmor = stack;
-            updateActiveJetpackArmorEquipment(item -> finalArmor);
-            log.debug("isJetpack: activation done item=%s", Log.item(stack));
+            updateJetpackArmorEquipment(original, item -> finalArmor);
+            log.debug("isJetpack: activation wrote back original=%s result=%s", Log.item(original), Log.item(stack));
             return FlightCheck.ALLOWED;
         }
 
@@ -255,19 +265,34 @@ public class FlightSession {
 
     /** require {@link #setJetpack(Jetpack)} first! */
     public void turnOn() {
-        log.debug("turnOn: player=%s starting=%s active=%s jetpack=%s",
+        val burnTask = state.getBurnTask();
+        log.debug("turnOn: player=%s starting=%s active=%s jetpack=%s task=%s",
                 getPlayer().getName(), state.isStarting(), state.isActive(),
-                state.getJetpack() == null ? "null" : state.getJetpack().getId());
+                state.getJetpack() == null ? "null" : state.getJetpack().getId(),
+                burnTask == null ? "null" : burnTask.getTaskId() + (burnTask.isCancelled() ? "/cancelled" : "/live"));
         if (state.isStarting()) {
-            log.debug("turnOn: already starting, ignored");
-            return;
+            if (burnTask != null && !burnTask.isCancelled()) {
+                log.debug("turnOn: already starting with a live task, ignored");
+                return;
+            }
+            // A previous start never reached the ticker (scheduler failure, cancelled task, reload):
+            // without this reset the session could never be started again.
+            log.warn("turnOn: stale starting flag without a live task (task=%s) - resetting",
+                    burnTask == null ? "null" : "cancelled");
+            state.setStarting(false);
         }
         state.setStarting(true);
 
         assert state.getJetpack() != null;
 
-        ticker.start(this, this::turnOff, () -> turnOff(true));
-        log.debug("turnOn: ticker requested player=%s", getPlayer().getName());
+        try {
+            ticker.start(this, this::turnOff, () -> turnOff(true));
+            log.debug("turnOn: ticker requested player=%s", getPlayer().getName());
+        } catch (RuntimeException error) {
+            state.setStarting(false);
+            log.warn("turnOn FAILED: player=%s, starting flag reset: %s", getPlayer().getName(), error);
+            throw error;
+        }
     }
 
     public void turnOffDetached() {
