@@ -62,8 +62,10 @@ public class JetpackRefill {
                 return null;
             }
             if (!Permissions.hasRawPermission(player, customFuel.getPermission())) {
-                log.debug("refill: no permission %s", customFuel.getPermission());
-                NoPermissionLvlException.throwNow();
+                String permission = customFuel.getPermission().getName();
+                log.debug("refill: no permission %s", permission);
+                NoPermissionLvlException.throwNow(permission,
+                        "refilling jetpack '" + jetpack.getId() + "' with custom fuel '" + customFuel.getId() + "'");
             }
         }
         if (customFuel == null)
@@ -73,9 +75,10 @@ public class JetpackRefill {
                 return null;
             }
 
-        if (!Permissions.hasRawPermission(player, jetpack.getPermission(Permissions.PERMISSION_REFILL_FUEL_SUFFIX))) {
-            log.debug("refill: no permission %s", jetpack.getPermission(Permissions.PERMISSION_REFILL_FUEL_SUFFIX));
-            NoPermissionLvlException.throwNow();
+        String refillPermission = jetpack.getPermission(Permissions.PERMISSION_REFILL_FUEL_SUFFIX);
+        if (!Permissions.hasRawPermission(player, refillPermission)) {
+            log.debug("refill: no permission %s", refillPermission);
+            NoPermissionLvlException.throwNow(refillPermission, "refilling jetpack '" + jetpack.getId() + "'");
         }
 
         val addFuelAmount = leftClick ? cursorItem.getAmount() : 1;

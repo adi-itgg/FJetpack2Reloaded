@@ -7,6 +7,8 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.command.
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 /**
  * Behaviour of one subcommand (or of a family of subcommands that share the same behaviour).
  * <p>
@@ -19,14 +21,20 @@ public interface CommandHandler extends SubCommand {
     /** Shared permission gate: the literal of the subcommand is the permission node. */
     default void requirePermission(@NotNull CommandSender sender, @NotNull FJ2RCommand command) {
         if (!Permissions.hasPermission(sender, command.literal()))
-            NoPermissionLvlException.throwNow();
+            NoPermissionLvlException.throwNow(
+                    Permissions.PERMISSION_PREFIX + command.literal(),
+                    "running /fj2r " + command.literal());
     }
 
     /** Shared gate for a family of subcommands that share one behaviour: any of them is enough. */
     default void requireAnyPermission(@NotNull CommandSender sender, FJ2RCommand @NotNull ... commands) {
         for (FJ2RCommand command : commands)
             if (Permissions.hasPermission(sender, command.literal())) return;
-        NoPermissionLvlException.throwNow();
+        NoPermissionLvlException.throwNow(
+                String.join(", ", Arrays.stream(commands)
+                        .map(command -> Permissions.PERMISSION_PREFIX + command.literal())
+                        .toList()),
+                "running one of the /fj2r subcommands that share this behaviour");
     }
 
 }

@@ -54,7 +54,9 @@ public class OnPlayerCrouchEvent {
         if (jetpack != null && jetpack.isRunInOffHandOnly()) {
             val check = ac.isJetpack(offHandItem, false, true);
             log.debug("crouch: offhand check=%s", check);
-            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow();
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow(
+                    jetpack.getPermission().getName(),
+                    "turning the offhand jetpack on");
             if (check == FlightCheck.ALLOWED) ac.turnOn();
             return;
         }
@@ -68,7 +70,12 @@ public class OnPlayerCrouchEvent {
             val check = ac.isJetpack(slot, false, true);
             log.debug("crouch: player=%s slot=%d item=%s check=%s selected=%s",
                     player.getName(), i, Log.item(slot), check, ac.getJetpack() == null ? "null" : ac.getJetpack().getId());
-            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow();
+            if (check == FlightCheck.NO_PERMISSION) {
+                val refused = items.jetpackOf(slot);
+                NoPermissionLvlException.throwNow(
+                        refused == null ? null : refused.getPermission().getName(),
+                        "turning the jetpack in armor slot " + i + " on");
+            }
             if (check == FlightCheck.BLOCKED) return;
             if (check != FlightCheck.ALLOWED) continue;
             if (ac.getJetpack() == null) continue;

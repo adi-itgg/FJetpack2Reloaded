@@ -96,7 +96,9 @@ public class OnPlayerInventoryClickEvent {
             val offHandItem = fj2RPlayer.getPlayer().getInventory().getItemInOffHand();
             val check = fj2RPlayer.isJetpack(offHandItem, false);
             log.log("checkJetpack: offhand check=%s", check);
-            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow();
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow(
+                    fj2RPlayer.getJetpack().getPermission().getName(),
+                    "clicking the inventory while flying with the offhand jetpack");
             if (check == FlightCheck.NOT_A_JETPACK) {
                 fj2RPlayer.turnOffDetached();
                 return;

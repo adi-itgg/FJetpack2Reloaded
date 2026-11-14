@@ -33,7 +33,9 @@ public class OnPlayerToggleFlightEvent {
             val offHandItem = e.getPlayer().getInventory().getItemInOffHand();
             val check = fj2RPlayer.isJetpack(offHandItem, false);
             log.debug("toggleFlight: offhand item=%s check=%s", Log.item(offHandItem), check);
-            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow();
+            if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow(
+                    fj2RPlayer.getJetpack().getPermission().getName(),
+                    "toggling flight with the offhand jetpack");
             if (check == FlightCheck.NOT_A_JETPACK) fj2RPlayer.turnOffDetached();
             return;
         }

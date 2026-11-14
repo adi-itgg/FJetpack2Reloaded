@@ -5,6 +5,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.PluginFactory;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.PlayerRegistry;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerSupport;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.NoPermissionLvlException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.YamlConfigRepository;
@@ -122,7 +123,12 @@ public class FJetpack2Reloaded extends JavaPlugin {
                     log.warn("command FAILED: sender=%s label=%s args=%s: %s",
                             sender.getName(), label, Arrays.toString(args), error);
                     if (error instanceof NoPermissionLvlException) {
-                        messages.sendMessage(sender, configs.message().getNoPermission());
+                        messages.sendMessage(sender,
+                                configs.message().getNoPermission() + " &7(" + error.getMessage() + ")");
+                        return;
+                    }
+                    if (error instanceof IMessageException) {
+                        log.debug("command: %s already reported: %s", sender.getName(), error.getMessage());
                         return;
                     }
                     if (error instanceof NumberFormatException) {

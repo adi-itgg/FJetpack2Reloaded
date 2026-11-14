@@ -57,7 +57,7 @@ public class ItemFactory {
             val customFuel = configs.customFuels().get(customFuelId);
             if (customFuel == null) {
                 messages.send(sender, "&cFailed to get custom fuel with id &6%s", customFuelId);
-                IMessageException.throwNow();
+                IMessageException.throwNow("custom fuel id '" + customFuelId + "' is not in custom_fuel.yml");
             }
             var item = new ItemStack(customFuel.getItem());
             if (customFuel.isGlowing())
@@ -111,7 +111,7 @@ public class ItemFactory {
             if (jetpack == null) {
                 log.debug("createJetpackItem: unknown jetpackId=%s", jetpackId);
                 messages.send(sender, "&cJetpack &l%s &cdidn't exist", jetpackId);
-                IMessageException.throwNow();
+                IMessageException.throwNow("jetpack id '" + jetpackId + "' is not in jetpack.yml");
             }
             log.debug("createJetpackItem: config id=%s material=%s itemsAdder=%s",
                     jetpack.getId(), jetpack.getItem(), jetpack.usesItemsAdder());
@@ -168,7 +168,7 @@ public class ItemFactory {
             if (jetpack == null) {
                 log.debug("setItemAsJetpack(id): unknown jetpackId=%s", jetpackId);
                 messages.send(sender, "&cJetpack &l%s &cdidn't exist", jetpackId);
-                IMessageException.throwNow();
+                IMessageException.throwNow("jetpack id '" + jetpackId + "' is not in jetpack.yml");
             }
             return setItemAsJetpack(sender, item, jetpack, fuelValue).getOrThrow();
         });
@@ -184,7 +184,7 @@ public class ItemFactory {
             if (itemMeta == null) {
                 log.debug("setItemAsJetpack: item=%s has no item meta", Log.item(item));
                 messages.send(sender, "&cInvalid item");
-                IMessageException.throwNow();
+                IMessageException.throwNow("item " + Log.item(item) + " has no item meta");
             }
             if (jetpack.getCustomModelData() != -1)
                 itemMeta.setCustomModelData(jetpack.getCustomModelData());
