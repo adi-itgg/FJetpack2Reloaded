@@ -56,13 +56,27 @@ public class OnPlayerInventoryClickEvent {
 
         checkJetpack(e, cursorItem, slotItem);
 
-        if (!refill.refill(player, slotItem, cursorItem, e.isLeftClick())) {
+        val refilledItem = refill.refill(player, slotItem, cursorItem, e.isLeftClick());
+        if (refilledItem == null) {
             log.log("click: not a refill, left to Bukkit");
             return;
         }
 
-        log.log("click: refill accepted, cancelling event player=%s", player.getName());
+        log.log("click: refill accepted, cancelling event player=%s slot=%d item=%s",
+                player.getName(), e.getSlot(), Log.item(refilledItem));
         e.setCancelled(true);
+        // Legacy NMS writes return a new ItemStack; write it back to the clicked slot, otherwise the
+        // inventory keeps the old stack with the old fuel value.
+        val clickedInventory = e.getClickedInventory();
+        if (clickedInventory != null) {
+            clickedInventory.setItem(e.getSlot(), refilledItem);
+            log.log("click: wrote refilled item into slot=%d inventory=%s",
+                    e.getSlot(), clickedInventory.getType());
+        } else {
+            player.getInventory().setItem(e.getSlot(), refilledItem);
+            log.log("click: wrote refilled item into player slot=%d", e.getSlot());
+        }
+
         if (e.isLeftClick()) {
             player.setItemOnCursor(getITEM_AIR());
             return;
