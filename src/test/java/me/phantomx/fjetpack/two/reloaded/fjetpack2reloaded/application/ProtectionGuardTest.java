@@ -12,14 +12,16 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Conf
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Island;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.IslandLookup;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.TestPlugin;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * The protection checks are the clearest seam of the port split: every third-party type sits behind
@@ -47,6 +51,11 @@ class ProtectionGuardTest {
     private final Player owner = player(OWNER);
 
     private ProtectionGuard guard;
+
+    @BeforeAll
+    static void installServer() {
+        TestPlugin.installServer();
+    }
 
     @BeforeEach
     void setUp() {
@@ -177,36 +186,13 @@ class ProtectionGuardTest {
 
     /** A Player that only implements what Permissions and the guard use. */
     private static Player player(UUID id, Set<String> granted) {
-        return (Player) Proxy.newProxyInstance(
-                ProtectionGuardTest.class.getClassLoader(),
-                new Class<?>[]{Player.class},
-                (proxy, method, args) -> {
-                    switch (method.getName()) {
-                        case "getUniqueId":
-                            return id;
-                        case "hasPermission":
-                            return granted.contains(args[0]);
-                        case "isOp":
-                            return false;
-                        case "getName":
-                            return "tester";
-                        case "toString":
-                            return "Player(tester)";
-                        case "hashCode":
-                            return System.identityHashCode(proxy);
-                        case "equals":
-                            return proxy == args[0];
-                        default:
-                            Class<?> type = method.getReturnType();
-                            if (!type.isPrimitive()) return null;
-                            if (type == boolean.class) return false;
-                            if (type == long.class) return 0L;
-                            if (type == double.class) return 0.0d;
-                            if (type == float.class) return 0.0f;
-                            if (type == char.class) return (char) 0;
-                            return 0;
-                    }
-                });
+        Player player = Mockito.mock(Player.class);
+        when(player.getUniqueId()).thenReturn(id);
+        when(player.hasPermission(anyString()))
+                .thenAnswer(invocation -> granted.contains(invocation.getArgument(0)));
+        when(player.isOp()).thenReturn(false);
+        when(player.getName()).thenReturn("tester");
+        return player;
     }
 
     private static Player player(UUID id) {

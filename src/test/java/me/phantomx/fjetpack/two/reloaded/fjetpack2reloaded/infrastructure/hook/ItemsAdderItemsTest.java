@@ -1,7 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook;
 
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.TestPlugin;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @DisplayName("ItemsAdder hook")
 class ItemsAdderItemsTest {
 
-    @BeforeEach
-    void installStubServer() {
+    @BeforeAll
+    static void installStubServer() {
         TestPlugin.installServer();
     }
 

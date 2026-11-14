@@ -7,7 +7,7 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.loader.PluginConfigLoader;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.mapping.ConfigValueMappers;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.testkit.RecordingSink;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +30,8 @@ class FailingFileLoadersTest {
 
     private final RecordingSink sink = new RecordingSink();
 
-    @BeforeEach
-    void installStubServer() {
+    @BeforeAll
+    static void installStubServer() {
         TestPlugin.installServer();
     }
 

@@ -69,6 +69,13 @@ dependencies {
     // The layer rules below are conventions until something fails the build when they break.
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
 
+    // A java.lang.reflect.Proxy for a Bukkit interface cannot exist before a server is installed:
+    // building it initialises Instrument/StructureType/Registry, which dereference Bukkit.getServer().
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    // spigot-api 26.3 references net.md_5.bungee.api.dialog.Dialog from Player, but its POM does not
+    // bring that class in - any reflection over Player fails with NoClassDefFoundError without it.
+    testImplementation 'net.md-5:bungeecord-dialog:1.21-R0.3'
+
     // already compileOnly: the hook listeners must be loadable so reflection can see them
     testImplementation 'com.bgsoftware:SuperiorSkyblockAPI:1.11.0'
 }

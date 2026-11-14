@@ -1,12 +1,14 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.flight;
 
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Jetpack;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.di.TestPlugin;
 import org.bukkit.entity.Player;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -19,6 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DisplayName("FlightState")
 class FlightStateTest {
+
+    @BeforeAll
+    static void installServer() {
+        TestPlugin.installServer();
+    }
 
     @Test
     @DisplayName("a fresh state is inactive and belongs to nobody yet")
@@ -59,10 +66,7 @@ class FlightStateTest {
     }
 
     private static Player stubPlayer() {
-        return (Player) Proxy.newProxyInstance(
-                FlightStateTest.class.getClassLoader(),
-                new Class<?>[]{Player.class},
-                (proxy, method, args) -> null);
+        return Mockito.mock(Player.class);
     }
 
 }

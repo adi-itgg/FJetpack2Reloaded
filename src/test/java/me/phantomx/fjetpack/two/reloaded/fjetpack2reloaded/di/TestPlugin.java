@@ -8,6 +8,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,24 +66,26 @@ public final class TestPlugin extends JavaPlugin {
         Bukkit.setServer(stubServer());
     }
 
-    /** Everything Bukkit is asked for while a config file is read, and nothing more. */
+    /**
+     * Everything Bukkit is asked for while a config file is read, and nothing more.
+     * <p>
+     * Mockito, not a {@link Proxy}: building a Proxy for {@link Server} initialises the API types
+     * behind the registries, and those need the very server this method is still creating.
+     */
     private static Server stubServer() {
-        return (Server) Proxy.newProxyInstance(
-                TestPlugin.class.getClassLoader(),
-                new Class<?>[]{Server.class},
-                (proxy, method, args) -> switch (method.getName()) {
-                    // JavaPluginLoader logs a warning through it as soon as it is built
-                    case "getLogger" -> Logger.getLogger("TestPlugin");
-                    case "getPluginManager" -> stubPluginManager();
-                    case "getConsoleSender" -> stubConsole();
-                    case "getName" -> "Test";
-                    case "getVersion" -> "test";
-                    case "getMotd" -> "";
-                    case "toString" -> "Server(test)";
-                    case "hashCode" -> System.identityHashCode(proxy);
-                    case "equals" -> proxy == args[0];
-                    default -> null;
-                });
+        return Mockito.mock(Server.class, invocation -> switch (invocation.getMethod().getName()) {
+            // JavaPluginLoader logs a warning through it as soon as it is built
+            case "getLogger" -> Logger.getLogger("TestPlugin");
+            case "getPluginManager" -> stubPluginManager();
+            case "getConsoleSender" -> stubConsole();
+            case "getName" -> "Test";
+            case "getVersion" -> "test";
+            case "getMotd" -> "";
+            case "toString" -> "Server(test)";
+            case "hashCode" -> System.identityHashCode(invocation.getMock());
+            case "equals" -> invocation.getMock() == invocation.getArguments()[0];
+            default -> null;
+        });
     }
 
     /** Permissions are registered here while a file is read; a stub accepts every one of them. */
