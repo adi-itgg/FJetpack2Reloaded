@@ -4,13 +4,21 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -24,20 +32,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      - name: Allow Execute Permission for Gradle
-        run: chmod +x gradlew
+      - name: Test and build minified JAR
+        run: ./gradlew test shadowJar proguard --stacktrace
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew proguard
-
-      - name: Upload JAR artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
-          path: build/libs/*.jar
+          name: Artifacts-${{ github.ref_name }}
+          path: |
+            build/libs/*.jar
+            build/mapping.txt
 
-      - name: Upload Mapping JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Mappings
-          path: build/mapping.txt
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --generate-notes \
+            build/libs/FJetpack2Reloaded-*-all.jar \
+            build/libs/FJetpack2Reloaded-*-minified.jar \
+            build/mapping.txt
