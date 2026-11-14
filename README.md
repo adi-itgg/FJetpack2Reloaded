@@ -26,8 +26,10 @@ Jetpack Plugin - Lightweight - Fuel System - Multi Jetpack with customizable con
 | fjetpack2reloaded.set | Allow player to use commnd /fjr set <jetpack> |
 | fjetpack2reloaded.setfuel | Allow player to use commnd /fjr setfuel <amount> |
 | fjetpack2reloaded.reload | Allow player to use command /fjr reload |
+| fjetpack2reloaded.checkupdate | Allow player to check for plugin updates |
 | fjetpack2reloaded.{jetpack} | Allow player to use Jetpack (from config) |
-| fjetpack2reloaded.{jetpack}.refill | Allow player to refuel Jetpack |
+| fjetpack2reloaded.{jetpack}.fuel.refill | Allow player to refuel Jetpack |
+| fjetpack2reloaded.fuel.{customfuel} | Allow player to refill Jetpack using a custom fuel item (from config) |
 | fjetpack2reloaded.{jetpack}.keep.on.empty | Allow player to bypass on empty fuel |
 | fjetpack2reloaded.{jetpack}.keep.on.death | Allow player to bypass on death fuel |
 | fjetpack2reloaded.{jetpack}.bypass.fuel | Allow player to bypass on fuel cost |
