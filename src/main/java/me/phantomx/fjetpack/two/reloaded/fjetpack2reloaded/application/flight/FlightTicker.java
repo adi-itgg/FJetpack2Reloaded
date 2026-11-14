@@ -52,35 +52,49 @@ final class FlightTicker {
      */
     void start(@NotNull FlightSession session, @NotNull Runnable halt, @NotNull Runnable haltReported) {
         val delayInSec = session.getJetpack().getFuel().getBurnRate();
+        log.debug("ticker.start: player=%s jetpack=%s burnRate=%ds",
+                session.getPlayer().getName(), session.getJetpack().getId(), delayInSec);
 
         // main thread: the tick touches inventory/equipment/player state
         Bukkit.getScheduler().runTaskTimer(plugin, bukkitTask -> {
             if (session.getBurnTask() == null) session.setBurnTask(bukkitTask);
             if (!session.isStarting() && !session.isActive()) {
+                log.debug("ticker: player=%s neither starting nor active -> cancel", session.getPlayer().getName());
                 bukkitTask.cancel();
                 return;
             }
+            log.debug("ticker: player=%s starting=%s active=%s onGround=%s flying=%s",
+                    session.getPlayer().getName(), session.isStarting(), session.isActive(),
+                    ((LivingEntity) session.getPlayer()).isOnGround(), session.getPlayer().isFlying());
             Catcher.create(() -> burnAction(session, halt)).onSuccess(check -> {
                 if (check == FlightCheck.NO_PERMISSION) {
+                    log.debug("ticker: player=%s NO_PERMISSION -> halt", session.getPlayer().getName());
                     messages.send(session.getPlayer(), configs.message().getNoPermission());
                     halt.run();
                     return;
                 }
                 if (check == FlightCheck.BLOCKED) {
+                    log.debug("ticker: player=%s BLOCKED -> halt", session.getPlayer().getName());
                     halt.run();
                     return;
                 }
-                if (!session.isStarting()) return;
+                if (!session.isStarting()) {
+                    log.debug("ticker: player=%s check=%s, not starting -> keep flying", session.getPlayer().getName(), check);
+                    return;
+                }
                 session.setActive(true);
                 val player = session.getPlayer();
                 player.setAllowFlight(true);
                 player.setFlySpeed(session.getJetpack().getSpeed() / 10.0f);
+                log.debug("ticker: player=%s activated jetpack=%s allowFlight=%s flySpeed=%s",
+                        player.getName(), session.getJetpack().getId(), player.getAllowFlight(), player.getFlySpeed());
                 messages.send(player, configs.message().getTurnOn());
 
                 particles.start(session);
             }).onFailure(error -> {
+                log.warn("ticker FAILED: player=%s jetpack=%s: %s", session.getPlayer().getName(),
+                        session.getJetpack() == null ? "null" : session.getJetpack().getId(), error);
                 haltReported.run();
-                log.debug("Error: %s", error);
             }).onCompleted(() -> {
                 if (session.isStarting())
                     session.setStarting(false);
@@ -98,17 +112,23 @@ final class FlightTicker {
         assert jetpack != null;
         val player = session.getPlayer();
 
-        if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
+        if (!Permissions.hasRawPermission(player, jetpack.getPermission())) {
+            log.debug("burn: player=%s missing permission=%s", player.getName(), jetpack.getPermission());
             return FlightCheck.NO_PERMISSION;
+        }
 
-        if (!session.isStarting() && ((LivingEntity) player).isOnGround() && !player.isFlying())
+        if (!session.isStarting() && ((LivingEntity) player).isOnGround() && !player.isFlying()) {
+            log.debug("burn: player=%s on ground and not flying -> skip tick", player.getName());
             return FlightCheck.ALLOWED;
+        }
 
         if (jetpack.isRunInOffHandOnly()) {
             val offHandItem = player.getInventory().getItemInOffHand();
             val check = session.isJetpack(offHandItem, !session.isStarting());
+            log.debug("burn: player=%s offhand item=%s check=%s", player.getName(), Log.item(offHandItem), check);
             if (check == FlightCheck.NO_PERMISSION || check == FlightCheck.BLOCKED) return check;
             if (check == FlightCheck.NOT_A_JETPACK) {
+                log.debug("burn: player=%s offhand is not the jetpack -> halt", player.getName());
                 halt.run();
                 messages.send(player, configs.message().getDetached());
             }
@@ -117,8 +137,12 @@ final class FlightTicker {
 
         val equipment = player.getEquipment();
         assert equipment != null;
-        for (@Nullable ItemStack armor : equipment.getArmorContents()) {
-            val check = session.isJetpack(armor, !session.isStarting());
+        val armor = equipment.getArmorContents();
+        log.debug("burn: player=%s scanning armor slots=%d consumeFuel=%s", player.getName(), armor.length, !session.isStarting());
+        for (int i = 0; i < armor.length; i++) {
+            ItemStack slot = armor[i];
+            val check = session.isJetpack(slot, !session.isStarting());
+            log.debug("burn: player=%s slot=%d item=%s check=%s", player.getName(), i, Log.item(slot), check);
             if (check == FlightCheck.ALLOWED) return FlightCheck.ALLOWED;
             if (check != FlightCheck.NOT_A_JETPACK) return check;
         }
@@ -127,6 +151,7 @@ final class FlightTicker {
         val notice = player.isFlying()
                 ? configs.message().getDetached()
                 : configs.message().getTurnOff();
+        log.debug("burn: player=%s no worn jetpack accepted -> halt (notice=%s)", player.getName(), notice);
         halt.run();
         messages.send(player, notice);
         return FlightCheck.ALLOWED;
@@ -139,6 +164,7 @@ final class FlightTicker {
      * what stops them. Leaving that out loses the trail on a cancelled tick.
      */
     void stop(@Nullable BukkitTask task) {
+        log.debug("ticker.stop: task=%s", task == null ? "null" : task.getTaskId());
         if (task != null) task.cancel();
         particles.stop();
     }

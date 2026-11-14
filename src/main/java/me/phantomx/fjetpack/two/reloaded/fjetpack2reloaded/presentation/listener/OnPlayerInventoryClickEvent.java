@@ -46,13 +46,22 @@ public class OnPlayerInventoryClickEvent {
 
         val cursorItem = e.getCursor() ;
         val slotItem = e.getCurrentItem();
-        if (cursorItem == null || slotItem == null) return;
-        log.log("cursorItem: %s - %s (%s)", cursorItem.getType().name(), slotItem.getType().name(), e.getSlotType().name());
+        if (cursorItem == null || slotItem == null) {
+            log.log("click: player=%s cursorOrSlot is null, skipped", player.getName());
+            return;
+        }
+        log.log("cursorItem: %s - %s (%s) player=%s left=%s shift=%s",
+                cursorItem.getType().name(), slotItem.getType().name(), e.getSlotType().name(),
+                player.getName(), e.isLeftClick(), e.isShiftClick());
 
         checkJetpack(e, cursorItem, slotItem);
 
-        if (!refill.refill(player, slotItem, cursorItem, e.isLeftClick())) return;
+        if (!refill.refill(player, slotItem, cursorItem, e.isLeftClick())) {
+            log.log("click: not a refill, left to Bukkit");
+            return;
+        }
 
+        log.log("click: refill accepted, cancelling event player=%s", player.getName());
         e.setCancelled(true);
         if (e.isLeftClick()) {
             player.setItemOnCursor(getITEM_AIR());
@@ -64,11 +73,15 @@ public class OnPlayerInventoryClickEvent {
 
     private void checkJetpack(@NotNull InventoryClickEvent e, @NotNull ItemStack cursorItem, @NotNull ItemStack slotItem) {
         val fj2RPlayer = players.of((Player) e.getWhoClicked());
+        log.log("checkJetpack: player=%s active=%s jetpack=%s slotType=%s",
+                e.getWhoClicked().getName(), fj2RPlayer.isActive(),
+                fj2RPlayer.getJetpack() == null ? "null" : fj2RPlayer.getJetpack().getId(), e.getSlotType());
         // check if player is flying using jetpack and check jetpack is exists from offhand
         if (fj2RPlayer.isActive() && fj2RPlayer.getJetpack() != null && fj2RPlayer.getJetpack().isRunInOffHandOnly()) {
             if (slotItem.getType() == Material.AIR || e.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
             val offHandItem = fj2RPlayer.getPlayer().getInventory().getItemInOffHand();
             val check = fj2RPlayer.isJetpack(offHandItem, false);
+            log.log("checkJetpack: offhand check=%s", check);
             if (check == FlightCheck.NO_PERMISSION) NoPermissionLvlException.throwNow();
             if (check == FlightCheck.NOT_A_JETPACK) {
                 fj2RPlayer.turnOffDetached();
@@ -83,6 +96,7 @@ public class OnPlayerInventoryClickEvent {
         if (fj2RPlayer.isActive() || e.getSlotType() != InventoryType.SlotType.ARMOR) return;
         if (!itemTags.isItemArmorFast(cursorItem) || !itemTags.isItemArmorFast(slotItem)) return;
         if (itemTags.isActiveJetpack(slotItem, fj2RPlayer.getJetpackUniqueId())) {
+            log.log("checkJetpack: clicked armor slot holds the active jetpack -> turnOffDetached");
             fj2RPlayer.turnOffDetached();
             return;
         }
@@ -91,6 +105,7 @@ public class OnPlayerInventoryClickEvent {
             jetpackExist.set(true);
             return item;
         });
+        log.log("checkJetpack: worn jetpack still equipped=%s", jetpackExist.get());
         if (!jetpackExist.get()) fj2RPlayer.turnOffDetached();
     }
 

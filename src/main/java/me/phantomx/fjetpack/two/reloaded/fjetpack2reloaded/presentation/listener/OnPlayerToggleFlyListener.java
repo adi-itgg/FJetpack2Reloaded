@@ -25,8 +25,10 @@ public class OnPlayerToggleFlyListener implements BukkitListener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerToggleFly(@NotNull PlayerToggleFlightEvent e) {
-        log.debug(e.getEventName());
-        Catcher.createVoid(() -> onToggleFlight.onToggle(e));
+        log.debug("PlayerToggleFlightEvent: player=%s flying=%s cancelled=%s",
+                e.getPlayer().getName(), e.isFlying(), e.isCancelled());
+        Catcher.createVoid(() -> onToggleFlight.onToggle(e))
+                .onFailure(error -> log.debug("PlayerToggleFlightEvent FAILED: player=%s: %s", e.getPlayer().getName(), error));
     }
 
 }

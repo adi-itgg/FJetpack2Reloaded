@@ -45,6 +45,7 @@ public class FlightSession {
     private final ItemFactory items;
 
     private final ItemTags itemTags;
+    private final Log log;
     private final JetpackAdmission admission;
     private final FuelCharge fuelCharge;
     private final WornJetpack wornJetpack;
@@ -61,10 +62,13 @@ public class FlightSession {
         this.protection = composition.protection();
         this.items = composition.items();
         this.itemTags = composition.itemTags();
+        this.log = new Log(getClass(), messages);
+        log.debug("session created: player=%s serverVersion=%d api=%s",
+                player.getName(), composition.version().getServerVersion(), composition.version().getNmsApiVersion());
 
         this.admission = new JetpackAdmission(configs, messages, itemTags, protection);
         this.fuelCharge = new FuelCharge();
-        this.wornJetpack = new WornJetpack(itemTags, composition.version());
+        this.wornJetpack = new WornJetpack(itemTags, composition.version(), messages);
         this.ticker = new FlightTicker(
                 composition.plugin(),
                 configs,
@@ -161,32 +165,49 @@ public class FlightSession {
      * messages, worn-armor rewrite) only happen when allowed
      */
     public @NotNull FlightCheck isJetpack(@Nullable ItemStack stack, boolean consumeFuel, boolean updateCurrentJetpack) {
+        log.debug("isJetpack: player=%s stack=%s consumeFuel=%s updateCurrent=%s current=%s",
+                getPlayer().getName(), Log.item(stack), consumeFuel, updateCurrentJetpack,
+                state.getJetpack() == null ? "null" : state.getJetpack().getId());
         val verdict = admission.judge(getPlayer(), stack, state.getJetpack());
+        log.debug("isJetpack: admission=%s jetpack=%s", verdict.check(),
+                verdict.jetpack() == null ? "null" : verdict.jetpack().getId());
         if (verdict.check() != FlightCheck.ALLOWED) return verdict.check();
         val jetpack = verdict.jetpack();
         assert jetpack != null;
 
         var fuel = itemTags.getFuelValue(stack);
         // item without a fuel tag: not a usable jetpack, never destroy it
-        if (fuel == null) return FlightCheck.NOT_A_JETPACK;
+        if (fuel == null) {
+            log.debug("isJetpack: item=%s has no fuel tag -> NOT_A_JETPACK", Log.item(stack));
+            return FlightCheck.NOT_A_JETPACK;
+        }
+        log.debug("isJetpack: player=%s fuelBefore=%d cost=%d sprintCost=%d sprinting=%s",
+                getPlayer().getName(), fuel, jetpack.getFuel().getCost(), jetpack.getFuel().getSprintCost(),
+                getPlayer().isSprinting());
 
         val settlement = fuelCharge.settle(getPlayer(), fuel, jetpack, getPlayer().isSprinting());
+        log.debug("isJetpack: settlement stop=%s fuel=%d warn=%s", settlement.stop(), settlement.fuel(), settlement.warn());
 
         if (settlement.stop() != FuelStop.NONE) {
+            log.debug("isJetpack: out of fuel -> BLOCKED");
             items.updateDisplayItem(jetpack, stack, settlement.fuel());
             onOutOfFuel();
             return FlightCheck.BLOCKED;
         }
         fuel = settlement.fuel();
 
-        if (updateCurrentJetpack)
+        if (updateCurrentJetpack) {
             setJetpack(jetpack);
+            log.debug("isJetpack: adopted jetpack=%s", jetpack.getId());
+        }
 
         if (!consumeFuel) {
             state.setJetpackUniqueId(itemTags.newItemId());
+            log.debug("isJetpack: activation uniqueId=%d runIdWrite", state.getJetpackUniqueId());
             stack = itemTags.setActiveJetpack(stack, state.getJetpackUniqueId());
             @NotNull ItemStack finalArmor = stack;
             updateActiveJetpackArmorEquipment(item -> finalArmor);
+            log.debug("isJetpack: activation done item=%s", Log.item(stack));
             return FlightCheck.ALLOWED;
         }
 
@@ -199,16 +220,27 @@ public class FlightSession {
         stack = itemTags.setFuelValue(stack, fuel);
         @NotNull ItemStack finalArmor = stack;
         updateActiveJetpackArmorEquipment(item -> finalArmor);
+        log.debug("isJetpack: tick done player=%s fuelAfter=%d item=%s", getPlayer().getName(), fuel, Log.item(stack));
         return FlightCheck.ALLOWED;
     }
 
     /** Every branch of this also tells the player why; see {@link ItemDispositionApplier}. */
     private void onOutOfFuel() {
+        log.debug("onOutOfFuel: player=%s jetpack=%s", getPlayer().getName(),
+                state.getJetpack() == null ? "null" : state.getJetpack().getId());
         messages.send(getPlayer(), configs.message().getOutOfFuel());
         val jetpack = state.getJetpack();
-        if (jetpack == null || jetpack.getOnEmptyFuel() == ItemDisposition.NONE) return;
-        if (Permissions.hasRawPermission(getPlayer(), jetpack.getPermission(Permissions.PERMISSION_KEEP_ON_EMPTY_SUFFIX)))
+        if (jetpack == null || jetpack.getOnEmptyFuel() == ItemDisposition.NONE) {
+            log.debug("onOutOfFuel: nothing to apply (jetpack=%s disposition=%s)",
+                    jetpack == null ? "null" : jetpack.getId(),
+                    jetpack == null ? "null" : jetpack.getOnEmptyFuel());
             return;
+        }
+        if (Permissions.hasRawPermission(getPlayer(), jetpack.getPermission(Permissions.PERMISSION_KEEP_ON_EMPTY_SUFFIX))) {
+            log.debug("onOutOfFuel: keep-on-empty permission bypass, no disposition");
+            return;
+        }
+        log.debug("onOutOfFuel: applying disposition=%s", jetpack.getOnEmptyFuel());
         // out-of-fuel disposition, per jetpack.yml OnEmptyFuel (was: OnDeath - fixed)
         updateActiveJetpackArmorEquipment(item -> dispositions.apply(
                 getPlayer(),
@@ -223,15 +255,23 @@ public class FlightSession {
 
     /** require {@link #setJetpack(Jetpack)} first! */
     public void turnOn() {
-        if (state.isStarting()) return;
+        log.debug("turnOn: player=%s starting=%s active=%s jetpack=%s",
+                getPlayer().getName(), state.isStarting(), state.isActive(),
+                state.getJetpack() == null ? "null" : state.getJetpack().getId());
+        if (state.isStarting()) {
+            log.debug("turnOn: already starting, ignored");
+            return;
+        }
         state.setStarting(true);
 
         assert state.getJetpack() != null;
 
         ticker.start(this, this::turnOff, () -> turnOff(true));
+        log.debug("turnOn: ticker requested player=%s", getPlayer().getName());
     }
 
     public void turnOffDetached() {
+        log.debug("turnOffDetached: player=%s flying=%s", getPlayer().getName(), getPlayer().isFlying());
         messages.send(getPlayer(), getPlayer().isFlying()
                         ? configs.message().getDetached()
                         : configs.message().getTurnOff()
@@ -247,22 +287,32 @@ public class FlightSession {
      * @param sendMsg report the turn off to the player
      */
     public void turnOff(boolean sendMsg) {
-        if (state.getJetpack() == null || !state.isActive()) return;
+        log.debug("turnOff: player=%s sendMsg=%s active=%s jetpack=%s",
+                getPlayer().getName(), sendMsg, state.isActive(),
+                state.getJetpack() == null ? "null" : state.getJetpack().getId());
+        if (state.getJetpack() == null || !state.isActive()) {
+            log.debug("turnOff: ignored (no active jetpack)");
+            return;
+        }
         releaseFlight();
 
         if (sendMsg)
             messages.send(getPlayer(), configs.message().getTurnOff());
         state.setJetpack(null);
+        log.debug("turnOff: done player=%s", getPlayer().getName());
     }
 
     /** Plugin unload: the jetpack stays equipped on the player so it survives the restart. */
     public void turnOffUnloaded() {
+        log.debug("turnOffUnloaded: player=%s active=%s", getPlayer().getName(), state.isActive());
         if (state.getJetpack() == null || !state.isActive()) return;
         releaseFlight();
         messages.send(getPlayer(), "&cThis plugin has been unloaded!");
     }
 
     private void releaseFlight() {
+        log.debug("releaseFlight: player=%s starting=%s active=%s task=%s",
+                getPlayer().getName(), state.isStarting(), state.isActive(), state.getBurnTask() == null ? "null" : "running");
         state.setStarting(false);
         state.setActive(false);
         getPlayer().setAllowFlight(false);
@@ -270,6 +320,7 @@ public class FlightSession {
         ticker.stop(state.getBurnTask());
         state.setBurnTask(null);
         registry.remove(getPlayer());
+        log.debug("releaseFlight: done player=%s allowFlight=false", getPlayer().getName());
     }
 
 }

@@ -3,8 +3,10 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.item;
 import jakarta.inject.Singleton;
 import lombok.SneakyThrows;
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ServerVersion;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.config.StoredKey;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -29,12 +31,16 @@ public class ItemTagCodec implements ItemTags {
 
     private final JavaPlugin plugin;
     private final ServerVersion version;
+    private final Log log;
     private final Random random = new Random();
     private final int runId = nextRunId();
 
-    public ItemTagCodec(@NotNull JavaPlugin plugin, @NotNull ServerVersion version) {
+    public ItemTagCodec(@NotNull JavaPlugin plugin, @NotNull ServerVersion version, @NotNull MessageSink messages) {
         this.plugin = plugin;
         this.version = version;
+        this.log = new Log(getClass(), messages);
+        log.debug("tag codec ready: serverVersion=%d nmsApi=%s path=%s",
+                version.getServerVersion(), version.getNmsApiVersion(), tagPath());
     }
 
     /** New per-activation id for the currently worn jetpack. */
@@ -56,6 +62,7 @@ public class ItemTagCodec implements ItemTags {
      */
     @Override
     public @NotNull ItemStack setJetpack(@NotNull ItemStack itemStack, @Nullable String id) {
+        log.debug("setJetpack: item=%s id=%s", Log.item(itemStack), id);
         return putString(itemStack, StoredKey.PLUGIN_ID, id);
     }
 
@@ -66,6 +73,7 @@ public class ItemTagCodec implements ItemTags {
 
     @Override
     public @NotNull ItemStack setCustomFuelID(@NotNull ItemStack itemStack, @Nullable String id) {
+        log.debug("setCustomFuelID: item=%s id=%s", Log.item(itemStack), id);
         return putString(itemStack, StoredKey.CUSTOM_FUEL_ID, id);
     }
 
@@ -76,18 +84,24 @@ public class ItemTagCodec implements ItemTags {
 
     @Override
     public @NotNull ItemStack setFuelValue(@NotNull ItemStack itemStack, @Nullable Long value) {
+        log.debug("setFuelValue: item=%s value=%s", Log.item(itemStack), value);
         return putString(itemStack, StoredKey.FUEL_VALUE_ID, value != null ? String.valueOf(value) : null);
     }
 
     @Override
     public @Nullable Long getFuelValue(@NotNull ItemStack itemStack) {
         val result = getStringOrDefault(itemStack, StoredKey.FUEL_VALUE_ID, "Error");
-        if (result.equals("Error")) return null;
+        if (result.equals("Error")) {
+            log.debug("getFuelValue: item=%s -> no fuel tag", Log.item(itemStack));
+            return null;
+        }
+        log.debug("getFuelValue: item=%s raw=%s", Log.item(itemStack), result);
         return Long.parseLong(result);
     }
 
     @Override
     public @NotNull ItemStack setActiveJetpack(@NotNull ItemStack item, int id) {
+        log.debug("setActiveJetpack: item=%s uniqueId=%d runId=%d", Log.item(item), id, runId);
         item = putString(item, StoredKey.JETPACK_RUN_PLUGIN_ID, StoredKey.JETPACK_RUN_PLUGIN_ID + runId);
         item = putString(item, StoredKey.ACTIVE_JETPACK_ID, StoredKey.ACTIVE_JETPACK_ID + id);
         return item;
@@ -108,7 +122,9 @@ public class ItemTagCodec implements ItemTags {
     public boolean isNotItemArmor(@NotNull ItemStack item) {
         // Material names are stable across versions. The old NMS ItemArmor check is gone from
         // 1.20.5+ and its class name never resolves on a flattened CraftBukkit package.
-        return !isItemArmorFast(item);
+        val notArmor = !isItemArmorFast(item);
+        log.debug("isNotItemArmor: item=%s -> %s", Log.item(item), notArmor);
+        return notArmor;
     }
 
     @Override
@@ -126,11 +142,45 @@ public class ItemTagCodec implements ItemTags {
      */
     private @NotNull Class<?> craftItemStack() throws ClassNotFoundException {
         val api = version.getNmsApiVersion();
-        return Class.forName("org.bukkit.craftbukkit." + (api.isEmpty() ? "" : api + ".") + "inventory.CraftItemStack");
+        val name = "org.bukkit.craftbukkit." + (api.isEmpty() ? "" : api + ".") + "inventory.CraftItemStack";
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException error) {
+            log.debug("CraftItemStack lookup FAILED: name=%s serverVersion=%d api=%s: %s",
+                    name, version.getServerVersion(), api, error);
+            throw error;
+        }
+    }
+
+    /** "PDC" or "NMS", for the debug lines. */
+    private @NotNull String tagPath() {
+        return version.getServerVersion() > 17 ? "PDC" : "NMS";
+    }
+
+    /**
+     * Read used only for debug logs, so a broken read can never change the write's behaviour.
+     */
+    private @Nullable String readQuietly(@NotNull ItemStack itemStack, @NotNull String key) {
+        try {
+            return getStringOrDefault(itemStack, key, "<absent>");
+        } catch (Throwable error) {
+            log.debug("readQuietly FAILED: item=%s key=%s: %s", Log.item(itemStack), key, error);
+            return "<failed>";
+        }
+    }
+
+    @SneakyThrows
+    private static <T> @NotNull T fail(@NotNull Throwable error) {
+        throw error;
     }
 
     @SneakyThrows
     private @NotNull ItemStack putString(@NotNull ItemStack itemStack, @NotNull String key, @Nullable String value) {
+        if (log.isDebugEnabled()) {
+            log.debug("putString: item=%s key=%s value=%s serverVersion=%d api=%s path=%s",
+                    Log.item(itemStack), key, value, version.getServerVersion(), version.getNmsApiVersion(), tagPath());
+            log.debug("putString before: key=%s current=%s", key, readQuietly(itemStack, key));
+        }
         if (version.getServerVersion() > 17) {
             // Minimum server v1.14.x
             val itemMeta = itemStack.getItemMeta();
@@ -142,48 +192,81 @@ public class ItemTagCodec implements ItemTags {
                 itemMeta.getPersistentDataContainer().set(namespacedKey, PersistentDataType.STRING, value);
 
             itemStack.setItemMeta(itemMeta);
+            log.debug("putString PDC done: item=%s key=%s value=%s", Log.item(itemStack), key, value);
             return itemStack;
         }
 
-        val craftItem = craftItemStack();
-        val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
-        val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
-        var nbtTagCompound = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
-        if (nbtTagCompound == null) {
-            val nbtClass = Class.forName(version.getServerVersion() > 16 ? "net.minecraft.nbt.NBTTagCompound" :
-                    String.format("net.minecraft.server.%s.NBTTagCompound", version.getNmsApiVersion())
-            );
-            nbtTagCompound = nbtClass.getDeclaredConstructor().newInstance();
+        try {
+            val craftItem = craftItemStack();
+            log.debug("putString NMS: craftClass=%s", craftItem.getName());
+            val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
+            val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
+            log.debug("putString NMS: nmsItem=%s", nmsItemStack.getClass().getName());
+            var nbtTagCompound = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
+            if (nbtTagCompound == null) {
+                val nbtClass = Class.forName(version.getServerVersion() > 16 ? "net.minecraft.nbt.NBTTagCompound" :
+                        String.format("net.minecraft.server.%s.NBTTagCompound", version.getNmsApiVersion())
+                );
+                nbtTagCompound = nbtClass.getDeclaredConstructor().newInstance();
+                log.debug("putString NMS: created new tag %s", nbtTagCompound.getClass().getName());
+            } else {
+                log.debug("putString NMS: existing tag %s", nbtTagCompound.getClass().getName());
+            }
+            // Resolve by exact signature: getMethod(name) looks for a no-argument method, which the
+            // NBT compound has never had. The parameter types below are the same on every supported NMS.
+            if (value == null)
+                nbtTagCompound.getClass().getMethod("remove", String.class).invoke(nbtTagCompound, key);
+            else
+                nbtTagCompound.getClass().getMethod("setString", String.class, String.class).invoke(nbtTagCompound, key, value);
+            val setTag = nmsItemStack.getClass().getMethod("setTag", nbtTagCompound.getClass());
+            setTag.invoke(nmsItemStack, nbtTagCompound);
+            val asBukkitCopy = craftItem.getMethod("asBukkitCopy", nmsItemStack.getClass());
+            itemStack = (ItemStack) asBukkitCopy.invoke(craftItem, nmsItemStack);
+            if (log.isDebugEnabled())
+                log.debug("putString NMS done: item=%s key=%s value=%s after=%s",
+                        Log.item(itemStack), key, value, readQuietly(itemStack, key));
+            return itemStack;
+        } catch (Throwable error) {
+            log.warn("putString NMS FAILED: item=%s key=%s value=%s serverVersion=%d api=%s: %s",
+                    Log.item(itemStack), key, value, version.getServerVersion(), version.getNmsApiVersion(), error);
+            return fail(error);
         }
-        // Resolve by exact signature: getMethod(name) looks for a no-argument method, which the NBT
-        // compound has never had. The parameter types below are the same on every supported NMS.
-        if (value == null)
-            nbtTagCompound.getClass().getMethod("remove", String.class).invoke(nbtTagCompound, key);
-        else
-            nbtTagCompound.getClass().getMethod("setString", String.class, String.class).invoke(nbtTagCompound, key, value);
-        val setTag = nmsItemStack.getClass().getMethod("setTag", nbtTagCompound.getClass());
-        setTag.invoke(nmsItemStack, nbtTagCompound);
-        val asBukkitCopy = craftItem.getMethod("asBukkitCopy", nmsItemStack.getClass());
-        itemStack = (ItemStack) asBukkitCopy.invoke(craftItem, nmsItemStack);
-        return itemStack;
     }
 
     @SneakyThrows
     private @NotNull String getStringOrDefault(@NotNull ItemStack itemStack, @NotNull String key, @NotNull String defaultValue) {
+        if (log.isDebugEnabled())
+            log.debug("getString: item=%s key=%s default=%s serverVersion=%d api=%s path=%s",
+                    Log.item(itemStack), key, defaultValue, version.getServerVersion(), version.getNmsApiVersion(), tagPath());
         if (version.getServerVersion() > 17) {
             val itemMeta = itemStack.getItemMeta();
-            if (itemMeta == null) return defaultValue;
+            if (itemMeta == null) {
+                log.debug("getString PDC: item=%s key=%s -> item meta is null, default=%s", Log.item(itemStack), key, defaultValue);
+                return defaultValue;
+            }
             val namespacedKey = new NamespacedKey(plugin, key);
             val persistentData = itemMeta.getPersistentDataContainer();
-            return persistentData.getOrDefault(namespacedKey, PersistentDataType.STRING, defaultValue);
+            val result = persistentData.getOrDefault(namespacedKey, PersistentDataType.STRING, defaultValue);
+            log.debug("getString PDC: item=%s key=%s value=%s", Log.item(itemStack), key, result);
+            return result;
         }
-        val craftItem = craftItemStack();
-        val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
-        val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
-        val nbt = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
-        if (nbt == null) return defaultValue;
-        val result = nbt.getClass().getMethod("getString", String.class).invoke(nbt, key);
-        return result == null ? defaultValue : (String) result;
+        try {
+            val craftItem = craftItemStack();
+            val asNMSCopy = craftItem.getMethod("asNMSCopy", ItemStack.class);
+            val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
+            val nbt = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
+            if (nbt == null) {
+                log.debug("getString NMS: item=%s key=%s -> no tag, default=%s", Log.item(itemStack), key, defaultValue);
+                return defaultValue;
+            }
+            val result = nbt.getClass().getMethod("getString", String.class).invoke(nbt, key);
+            log.debug("getString NMS: item=%s key=%s value=%s", Log.item(itemStack), key, result);
+            return result == null ? defaultValue : (String) result;
+        } catch (Throwable error) {
+            log.warn("getString NMS FAILED: item=%s key=%s serverVersion=%d api=%s: %s",
+                    Log.item(itemStack), key, version.getServerVersion(), version.getNmsApiVersion(), error);
+            return fail(error);
+        }
     }
 
 }

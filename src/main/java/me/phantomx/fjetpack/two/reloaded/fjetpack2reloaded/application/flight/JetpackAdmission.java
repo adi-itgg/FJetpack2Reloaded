@@ -1,6 +1,7 @@
 package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.flight;
 
 import lombok.val;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Log;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.Permissions;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.ProtectionGuard;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Jetpack;
@@ -27,6 +28,7 @@ final class JetpackAdmission {
     private final MessageSink messages;
     private final ItemTags itemTags;
     private final ProtectionGuard protection;
+    private final Log log;
 
     JetpackAdmission(@NotNull ConfigRepository configs,
                      @NotNull MessageSink messages,
@@ -36,6 +38,7 @@ final class JetpackAdmission {
         this.messages = messages;
         this.itemTags = itemTags;
         this.protection = protection;
+        this.log = new Log(getClass(), messages);
     }
 
     /**
@@ -43,29 +46,57 @@ final class JetpackAdmission {
      * @param inUse the jetpack the session already adopted; a different id is refused
      */
     @NotNull Verdict judge(@NotNull Player player, @Nullable ItemStack stack, @Nullable Jetpack inUse) {
-        if (stack == null || stack.getType() == Material.AIR) return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        log.debug("admission: player=%s stack=%s inUse=%s world=%s",
+                player.getName(), Log.item(stack), inUse == null ? "null" : inUse.getId(), player.getWorld().getName());
+        if (stack == null || stack.getType() == Material.AIR) {
+            log.debug("admission: refused NOT_A_JETPACK - stack is null or AIR");
+            return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        }
 
-        val jetpack = configs.jetpacks().get(itemTags.getJetpackID(stack, ""));
-        if (jetpack == null) return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        val id = itemTags.getJetpackID(stack, "");
+        val jetpack = configs.jetpacks().get(id);
+        log.debug("admission: item=%s jetpackTag=%s config=%s", Log.item(stack), id, jetpack == null ? "null" : jetpack.getId());
+        if (jetpack == null) {
+            log.debug("admission: refused NOT_A_JETPACK - no configured jetpack for tag=%s", id);
+            return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        }
         // an ItemsAdder jetpack carries whatever base material its item uses; the id tag above
         // already told us which jetpack this is
-        if (!jetpack.usesItemsAdder() && stack.getType() != jetpack.getItem())
+        if (!jetpack.usesItemsAdder() && stack.getType() != jetpack.getItem()) {
+            log.debug("admission: refused NOT_A_JETPACK - material=%s configured=%s",
+                    stack.getType(), jetpack.getItem());
             return Verdict.refused(FlightCheck.NOT_A_JETPACK);
-        if (inUse != null && !jetpack.getId().equals(inUse.getId())) return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        }
+        if (inUse != null && !jetpack.getId().equals(inUse.getId())) {
+            log.debug("admission: refused NOT_A_JETPACK - different jetpack in use=%s found=%s", inUse.getId(), jetpack.getId());
+            return Verdict.refused(FlightCheck.NOT_A_JETPACK);
+        }
 
-        if (!Permissions.hasRawPermission(player, jetpack.getPermission()))
+        val permission = jetpack.getPermission();
+        if (!Permissions.hasRawPermission(player, permission)) {
+            log.debug("admission: refused NO_PERMISSION - player=%s permission=%s", player.getName(), permission);
             return Verdict.refused(FlightCheck.NO_PERMISSION);
+        }
 
         val blockedWorld = jetpack.getBlockedWorlds().stream()
                 .anyMatch(world -> player.getWorld().getName().equals(world));
         if (blockedWorld) {
+            log.debug("admission: refused BLOCKED - world=%s is in blockedWorlds=%s",
+                    player.getWorld().getName(), jetpack.getBlockedWorlds());
             messages.send(player, configs.message().getBlockedWorlds());
             return Verdict.refused(FlightCheck.BLOCKED);
         }
 
-        if (!protection.allowsSuperiorSkyblock(player, jetpack)) return Verdict.refused(FlightCheck.BLOCKED);
-        if (!protection.allowsGriefPrevention(player, jetpack)) return Verdict.refused(FlightCheck.BLOCKED);
+        if (!protection.allowsSuperiorSkyblock(player, jetpack)) {
+            log.debug("admission: refused BLOCKED - SuperiorSkyblock denied player=%s jetpack=%s", player.getName(), jetpack.getId());
+            return Verdict.refused(FlightCheck.BLOCKED);
+        }
+        if (!protection.allowsGriefPrevention(player, jetpack)) {
+            log.debug("admission: refused BLOCKED - GriefPrevention denied player=%s jetpack=%s", player.getName(), jetpack.getId());
+            return Verdict.refused(FlightCheck.BLOCKED);
+        }
 
+        log.debug("admission: ALLOWED player=%s jetpack=%s", player.getName(), jetpack.getId());
         return Verdict.allowed(jetpack);
     }
 

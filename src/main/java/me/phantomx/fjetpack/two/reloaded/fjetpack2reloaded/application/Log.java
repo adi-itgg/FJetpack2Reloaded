@@ -3,6 +3,7 @@ package me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application;
 import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +41,22 @@ public class Log {
 
     public void debug(@Nullable Object message, Object... args) {
         log(tag + " - " + message, args);
+    }
+
+    /** Debug-gated warning; silent whenever the debug flag is off, so behaviour is unchanged. */
+    public void warn(@Nullable Object message, Object... args) {
+        if (!debug) return;
+        messages.sendToConsole("&e" + tag + " - WARN - " + message, args);
+    }
+
+    /** True when the debug flag is on; guard expensive argument building with it. */
+    public boolean isDebugEnabled() {
+        return debug;
+    }
+
+    /** One-line item description for logs; never touches meta or NBT. */
+    public static @NotNull String item(@Nullable ItemStack stack) {
+        return stack == null ? "null" : stack.getType().name() + "x" + stack.getAmount();
     }
 
 }

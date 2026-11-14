@@ -26,7 +26,7 @@ import java.util.WeakHashMap;
 public class PlayerRegistry {
 
     private final Map<UUID, FlightSession> players = new WeakHashMap<>();
-
+    private final Log log;
     private final FlightComposition composition;
 
     public PlayerRegistry(@NotNull JavaPlugin plugin,
@@ -37,6 +37,7 @@ public class PlayerRegistry {
                           @NotNull ItemFactory items,
                           @NotNull ServerVersion version) {
         this.composition = new FlightComposition(plugin, configs, messages, itemTags, protection, items, version);
+        this.log = new Log(getClass(), messages);
     }
 
     /** State of the player, created on first use. */
@@ -45,12 +46,16 @@ public class PlayerRegistry {
         if (fj2RPlayer == null) {
             fj2RPlayer = new FlightSession(player, this, composition);
             players.put(player.getUniqueId(), fj2RPlayer);
+            log.debug("registry: created session player=%s", player.getName());
+        } else {
+            log.debug("registry: existing session player=%s active=%s", player.getName(), fj2RPlayer.isActive());
         }
         fj2RPlayer.setPlayer(player);
         return fj2RPlayer;
     }
 
     public void remove(@NotNull Player player) {
+        log.debug("registry: remove player=%s", player.getName());
         players.remove(player.getUniqueId());
     }
 
@@ -59,6 +64,7 @@ public class PlayerRegistry {
     }
 
     public void clear() {
+        log.debug("registry: clear sessions=%d", players.size());
         val copy = players.values().toArray(new FlightSession[0]);
         players.clear();
         for (FlightSession fj2RPlayer : copy)

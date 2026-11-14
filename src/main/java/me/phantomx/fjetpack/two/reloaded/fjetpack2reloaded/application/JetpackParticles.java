@@ -32,10 +32,15 @@ public class JetpackParticles {
     }
 
     public void start(@NotNull FlightSession session) {
-        log.log("starting particle effect");
+        log.log("starting particle effect for player=%s jetpack=%s",
+                session.getPlayer().getName(), session.getJetpack() == null ? "null" : session.getJetpack().getId());
         val jetpack = session.getJetpack();
-        if (jetpack == null || jetpack.getParticle() == null || !jetpack.getParticle().isEnable()) return;
+        if (jetpack == null || jetpack.getParticle() == null || !jetpack.getParticle().isEnable()) {
+            log.log("particle effect disabled or not configured, skipping");
+            return;
+        }
         val effectName = jetpack.getParticle().getEffect().toUpperCase().trim();
+        log.log("particle effect name=%s delay=%s", effectName, jetpack.getParticle().getDelay());
         val effect = Catcher.create(() ->
                 version.getServerVersion() > 8 ? Particle.valueOf(effectName) : Effect.valueOf(effectName)
         ).onFailure(error -> {
@@ -55,6 +60,7 @@ public class JetpackParticles {
     }
 
     public void stop() {
+        log.log("stopping particle effect (task=%s)", task == null ? "null" : task.getTaskId());
         if (task != null)
             task.cancel();
         task = null;

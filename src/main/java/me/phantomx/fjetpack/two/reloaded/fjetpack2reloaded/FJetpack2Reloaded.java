@@ -22,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,6 +35,7 @@ public class FJetpack2Reloaded extends JavaPlugin {
 
     private BeanScope beanScope;
     private Messages messages;
+    private Log log;
     private YamlConfigRepository configs;
     private PlayerRegistry players;
     private FJ2RCommandExecutor commandExecutor;
@@ -50,6 +52,8 @@ public class FJetpack2Reloaded extends JavaPlugin {
                 .build();
 
         this.messages = beanScope.get(Messages.class);
+        this.log = new Log(getClass(), messages);
+        log.log("debug logging is ON (server motd contains [DEV-FJ2R-DEBUG]); setfuel/activation trace enabled");
         this.configs = beanScope.get(YamlConfigRepository.class);
         this.players = beanScope.get(PlayerRegistry.class);
         this.commandExecutor = beanScope.get(FJ2RCommandExecutor.class);
@@ -112,8 +116,11 @@ public class FJetpack2Reloaded extends JavaPlugin {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        log.debug("command: sender=%s label=%s args=%s", sender.getName(), label, Arrays.toString(args));
         return Catcher.create(() -> commandExecutor.onCommand(sender, command, label, args))
                 .onFailure(error -> {
+                    log.warn("command FAILED: sender=%s label=%s args=%s: %s",
+                            sender.getName(), label, Arrays.toString(args), error);
                     if (error instanceof NoPermissionLvlException) {
                         messages.sendMessage(sender, configs.message().getNoPermission());
                         return;

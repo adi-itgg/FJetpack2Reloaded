@@ -23,10 +23,12 @@ public class ListenerFailureHandler {
 
     private final ConfigRepository configs;
     private final MessageSink messages;
+    private final Log log;
 
     public ListenerFailureHandler(@NotNull ConfigRepository configs, @NotNull MessageSink messages) {
         this.configs = configs;
         this.messages = messages;
+        this.log = new Log(getClass(), messages);
     }
 
     /**
@@ -35,6 +37,8 @@ public class ListenerFailureHandler {
      * @param eventName the Bukkit event name, used to label the console line
      */
     public void handle(@NotNull Throwable error, @NotNull CommandSender target, @NotNull String eventName) {
+        log.warn("event failure: event=%s target=%s error=%s: %s", eventName, target.getName(),
+                error.getClass().getName(), error);
         if (error instanceof NoPermissionLvlException) {
             messages.send(target, configs.message().getNoPermission());
             return;
