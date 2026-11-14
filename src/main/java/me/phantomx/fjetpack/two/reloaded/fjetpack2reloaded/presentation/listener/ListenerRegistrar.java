@@ -10,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,10 +58,25 @@ public class ListenerRegistrar {
         this.listeners = List.copyOf(listeners);
     }
 
-    /** @return the registered listeners, in the order they were registered */
+    /**
+     * Registers every listener that is available right now. A listener whose optional plugin is not
+     * installed is skipped and reported at INFO: handing it to Bukkit would make the plugin loader
+     * log a SEVERE "Failed to register events" for a dependency the server never had.
+     *
+     * @return the listeners that were registered, in the order they were registered
+     */
     public @NotNull List<BukkitListener> registerAll(@NotNull PluginManager manager, @NotNull Plugin plugin) {
-        listeners.forEach(listener -> listener.registerEvent(manager, plugin));
-        return listeners;
+        List<BukkitListener> registered = new ArrayList<>(listeners.size());
+        for (BukkitListener listener : listeners) {
+            String unavailable = listener.unavailableReason();
+            if (unavailable != null) {
+                plugin.getLogger().info("Skipping " + listener.getClass().getSimpleName() + ": " + unavailable);
+                continue;
+            }
+            listener.registerEvent(manager, plugin);
+            registered.add(listener);
+        }
+        return registered;
     }
 
     /** Every listener this plugin installs; exposed so a test can assert against it. */
