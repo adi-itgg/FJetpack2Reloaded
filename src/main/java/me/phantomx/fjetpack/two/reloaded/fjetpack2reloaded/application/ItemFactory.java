@@ -5,7 +5,6 @@ import lombok.val;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ConfigRepository;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.CustomItems;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
-import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.CustomFuel;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.config.Jetpack;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.IMessageException;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.exception.handler.Catcher;
@@ -20,6 +19,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +35,7 @@ public class ItemFactory {
     private final MessageSink messages;
     private final ServerVersion version;
     private final CustomItems customItems;
+    private final Enchantment GLOW_ENCHANT = resolveEnchant();
 
     public ItemFactory(@NotNull ConfigRepository configs,
                        @NotNull ItemTags itemTags,
@@ -70,8 +71,7 @@ public class ItemFactory {
             itemMeta.setDisplayName(customFuel.getDisplayName());
             itemMeta.setLore(customFuel.getLore());
             if (customFuel.isGlowing()) {
-                itemMeta.addEnchant(Enchantment.LUCK, 1, false);
-                itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                item = addGlow(item);
             }
             item.setItemMeta(itemMeta);
 
@@ -80,6 +80,24 @@ public class ItemFactory {
 
             return item;
         });
+    }
+
+    public ItemStack addGlow(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || GLOW_ENCHANT == null) return item;
+
+        meta.addEnchant(GLOW_ENCHANT, 1, true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    @SuppressWarnings("deprecation")
+    private Enchantment resolveEnchant() {
+        // 1.8 - 1.20.4 memakai "DURABILITY", 1.20.5+ memakai "UNBREAKING"
+        Enchantment e = Enchantment.getByName("DURABILITY");
+        if (e == null) e = Enchantment.getByName("UNBREAKING");
+        return e;
     }
 
     public @NotNull Catcher<ItemStack> createJetpackItem(@NotNull CommandSender sender, @NotNull String jetpackId, long fuelValue) {
@@ -112,6 +130,10 @@ public class ItemFactory {
      */
     private @NotNull ItemStack baseJetpackItem(@NotNull CommandSender sender, @NotNull Jetpack jetpack) {
         if (!jetpack.usesItemsAdder()) return new ItemStack(jetpack.getItem());
+
+        if (jetpack.getItemsAdderID() == null) {
+            messages.send(sender, "&eItemsAdder item id is NULL");
+        }
 
         val itemsAdderId = jetpack.getItemsAdderID().trim();
         val itemsAdderItem = customItems.get(itemsAdderId);

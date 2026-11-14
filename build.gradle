@@ -41,11 +41,11 @@ dependencies {
     // ItemsAdder API: optional at runtime, provided by the ItemsAdder plugin when it is installed.
     compileOnly 'com.github.LoneDev6:api-itemsadder:3.6.1'
 
-    compileOnly "org.apache.commons:commons-lang3:3.12.0"
+    compileOnly "org.apache.commons:commons-lang3:3.22.0"
     compileOnly 'org.jetbrains:annotations:20.1.0'
 
     //noinspection VulnerableLibrariesLocal
-    compileOnly 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT'
 
     // Dependency injection. The avaje generator MUST be declared before lombok (see AGENTS.md).
     def injectVersion = '12.3'
@@ -59,9 +59,9 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 
     // already a compileOnly dependency; needed at test runtime so YamlConfiguration/ConfigurationSection exist
-    testImplementation 'org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT'
+    testImplementation 'org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT'
     // already a compileOnly dependency (Spigot bundles it); needed at test runtime for Messages
-    testImplementation 'org.apache.commons:commons-lang3:3.12.0'
+    testImplementation 'org.apache.commons::3.22.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
