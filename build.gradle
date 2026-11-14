@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
 
-    implementation 'org.bstats:bstats-bukkit:3.0.0'
+    implementation 'org.bstats:bstats-bukkit:3.2.1'
 
     compileOnly 'com.github.TechFortress:GriefPrevention:16.18'
     compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:1.11.0'
