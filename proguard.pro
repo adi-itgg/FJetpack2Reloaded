@@ -10,10 +10,9 @@
 # We only want minification, not obfuscation.
 #-dontobfuscate
 -verbose
-# Keep annotations
-#-keepattributes *Annotation*
--keepattributes RuntimeVisibleAnnotations
-#-keepattributes Signature
+# Avaje-inject generated code and reflective config access need annotations, generic signatures and
+# inner-class metadata at runtime.
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,MethodParameters
 
 # Entry point to the app.
 -keep class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.FJetpack2Reloaded { *; }
@@ -40,8 +39,11 @@
 -keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.presentation.listener.** { *; }
 -keep,allowobfuscation class me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.infrastructure.hook.** { *; }
 
-# Avaje Inject: the generated module is discovered at runtime through META-INF/services, so the
-# provider file must follow renamed classes and the module class must keep its name.
+# Avaje Inject: ServiceLoader looks the generated module up by name from
+# META-INF/services/io.avaje.inject.spi.InjectExtension. That name is a string the shrinker cannot
+# see, so the provider must be kept outright - -keepnames only stopped renaming and let the class be
+# removed as unused.
 -adaptresourcefilecontents META-INF/services/**
--keepnames class * implements io.avaje.inject.spi.InjectExtension
+-adaptclassstrings
+-keep class * implements io.avaje.inject.spi.InjectExtension { *; }
 -keep class io.avaje.inject.** { *; }
