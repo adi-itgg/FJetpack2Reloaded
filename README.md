@@ -2,6 +2,7 @@
 
 Jetpack Plugin - Lightweight - Fuel System - Multi Jetpack with customizable configuration
 
+[![Java CI with Gradle](https://github.com/adi-itgg/FJetpack2Reloaded/actions/workflows/gradle.yml/badge.svg)](https://github.com/adi-itgg/FJetpack2Reloaded/actions/workflows/gradle.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ### Next generation from FJetpackReloaded
