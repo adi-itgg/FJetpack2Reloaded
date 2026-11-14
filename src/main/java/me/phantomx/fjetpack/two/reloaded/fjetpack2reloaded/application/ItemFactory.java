@@ -208,7 +208,8 @@ public class ItemFactory {
 
             item.setItemMeta(itemMeta);
             var resultItem = itemTags.setJetpack(item, jetpack.getId());
-            resultItem = itemTags.setFuelValue(item, fuelValue);
+            // Legacy NMS writes return a new ItemStack; reusing 'item' here drops the id tag.
+            resultItem = itemTags.setFuelValue(resultItem, fuelValue);
             val finalResultItem = resultItem;
             if (log.isDebugEnabled())
                 log.debug("setItemAsJetpack: after tags item=%s tags=[%s]", Log.item(finalResultItem), describeTags(finalResultItem));
