@@ -150,15 +150,17 @@ public class ItemTagCodec implements ItemTags {
         val nmsItemStack = asNMSCopy.invoke(craftItem, itemStack);
         var nbtTagCompound = nmsItemStack.getClass().getMethod("getTag").invoke(nmsItemStack);
         if (nbtTagCompound == null) {
-            nbtTagCompound = Class.forName(version.getServerVersion() > 16 ? "net.minecraft.nbt.NBTTagCompound" :
+            val nbtClass = Class.forName(version.getServerVersion() > 16 ? "net.minecraft.nbt.NBTTagCompound" :
                     String.format("net.minecraft.server.%s.NBTTagCompound", version.getNmsApiVersion())
             );
-            nbtTagCompound = nbtTagCompound.getClass().getDeclaredConstructors()[0].newInstance();
+            nbtTagCompound = nbtClass.getDeclaredConstructor().newInstance();
         }
+        // Resolve by exact signature: getMethod(name) looks for a no-argument method, which the NBT
+        // compound has never had. The parameter types below are the same on every supported NMS.
         if (value == null)
-            nbtTagCompound.getClass().getMethod("remove").invoke(nbtTagCompound, key);
+            nbtTagCompound.getClass().getMethod("remove", String.class).invoke(nbtTagCompound, key);
         else
-            nbtTagCompound.getClass().getMethod("setString").invoke(nbtTagCompound, key, value);
+            nbtTagCompound.getClass().getMethod("setString", String.class, String.class).invoke(nbtTagCompound, key, value);
         val setTag = nmsItemStack.getClass().getMethod("setTag", nbtTagCompound.getClass());
         setTag.invoke(nmsItemStack, nbtTagCompound);
         val asBukkitCopy = craftItem.getMethod("asBukkitCopy", nmsItemStack.getClass());
