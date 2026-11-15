@@ -63,7 +63,7 @@ dependencies {
     // already a compileOnly dependency (Spigot bundles it); needed at test runtime for Messages
     testImplementation 'org.apache.commons:commons-lang3:3.22.0'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 
     // The layer rules below are conventions until something fails the build when they break.
