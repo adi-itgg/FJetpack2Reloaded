@@ -54,36 +54,6 @@ public class PluginFactory {
         return initiator.getPlugin();
     }
 
-    @Bean
-    MessageSink messageSink(Messages messages) {
-        return messages;
-    }
-
-    @Bean
-    ConfigRepository configRepository(YamlConfigRepository repository) {
-        return repository;
-    }
-
-    @Bean
-    ItemTags itemTags(ItemTagCodec codec) {
-        return codec;
-    }
-
-    @Bean
-    ClaimLookup claimLookup(GriefPreventionClaims claims) {
-        return claims;
-    }
-
-    @Bean
-    IslandLookup islandLookup(SuperiorSkyblockIslands islands) {
-        return islands;
-    }
-
-    @Bean
-    CustomItems customItems(ItemsAdderItems items) {
-        return items;
-    }
-
     /** Built from a static factory, so the generator cannot derive it. */
     @Bean
     ConfigValueMappers configValueMappers() {
