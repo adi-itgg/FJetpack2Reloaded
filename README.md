@@ -181,7 +181,7 @@ The jetpack turns itself off when:
 
 - the player presses sneak again on the ground;
 - the worn (or off-hand) jetpack is removed or swapped out - the player sees the "took off your jetpack" message;
-- the player loses the permission, or enters a world listed in `BlockedWorlds`, or a protection check starts refusing the flight;
+- the player loses the permission, or enters a world listed in `BlockedWorlds` (or outside `AllowedWorlds`), or a protection check starts refusing the flight;
 - the player leaves the server or the plugin is unloaded.
 
 ### Fuel
@@ -213,6 +213,7 @@ If the player dies while a jetpack is active, `OnDeath` is applied the same way 
 ### Worlds, claims and islands
 
 - `BlockedWorlds` lists worlds where the jetpack cannot be turned on.
+- `AllowedWorlds` lists the only worlds where it can. An empty or missing list means no restriction, so a jetpack that never sets it behaves exactly as before. A world named in both lists is refused - `BlockedWorlds` always wins. A refusal sends the `BlockedWorlds` message for the block list and the `NotAllowedWorlds` message for the allow list.
 - With GriefPrevention support enabled for the jetpack, flight is restricted to claims according to `OnlyAllowInsideOwnClaim` and `AllowInsideAllClaim`; `AllowBypassClaim` plus the `bypass.gp.claim` permission lifts the restriction.
 - With SuperiorSkyblock2 support enabled, flight requires the island flag `FJETPACK2_RELOADED` (and the matching island privilege) on the player's island; `AllowBypassFlag` and `AllowBypassPrivilege` plus their permissions lift the checks.
 
@@ -302,7 +303,8 @@ Each top-level section is one jetpack. Default examples: `VIP` (chainmail chestp
 | `Speed` | Fly speed. The plugin sets the player's fly speed to `Speed / 10`, so `1.1` means `0.11`. |
 | `Flags` | Item flags, e.g. `HIDE_ATTRIBUTES`, `HIDE_ENCHANTS`. `[]` for none. |
 | `Enchantments` | `name:level` entries; use `DURABILITY` on servers below 1.17 and `UNBREAKING` from 1.17. |
-| `BlockedWorlds` | World names where the jetpack cannot be turned on. |
+| `BlockedWorlds` | World names where the jetpack cannot be turned on. Wins over `AllowedWorlds`. |
+| `AllowedWorlds` | The only world names where the jetpack can be turned on. Empty or missing means every world not in `BlockedWorlds`. |
 | `RunInOffHandOnly` | When true the jetpack only works from the off hand. |
 | `Fuel.CustomFuel` | Custom fuel id from `custom_fuel.yml`; `NONE` disables custom fuel. Case sensitive. |
 | `Fuel.Item` | Fuel material used for refuelling when no custom fuel is configured. |
@@ -345,7 +347,7 @@ Each top-level section is one custom fuel; default example: `CVIP`.
 | Group | Keys |
 | --- | --- |
 | Prefix and state | `Prefix`, `TurnOn`, `TurnOff` |
-| Errors | `NoPermission`, `OutOfFuel`, `BlockedWorlds`, `NoFuel`, `Detached`, `CmdPlayerOnly`, `NoItemInMainHand`, `InventoryFull`, `NotJetpackItem`, `InvalidNumber` |
+| Errors | `NoPermission`, `OutOfFuel`, `BlockedWorlds`, `NotAllowedWorlds`, `NoFuel`, `Detached`, `CmdPlayerOnly`, `NoItemInMainHand`, `InventoryFull`, `NotJetpackItem`, `InvalidNumber` |
 | Fuel and death events | `WarnRunOutBelow`, `OnEmptyFuelDropped`, `OnEmptyFuelRemoved`, `OnDeathDropped`, `OnDeathRemoved` |
 | Protection | `GriefPreventionOutsideClaim`, `GriefPreventionTurnedOffOutsideClaim`, `GriefPreventionOutsideOwnClaim`, `SuperiorSkyblock2NoFlag`, `SuperiorSkyblock2NoPermission`, `SuperiorSkyblock2OutsideIsland` |
 | Command feedback | `CmdGetSelf`, `CmdGiveSuccess`, `CmdGiveReceived`, `CmdSet`, `CmdReload`, `CmdFuelSet`, `CmdFuelGetSelf`, `CmdFuelGiveSuccess`, `CmdFuelGiveReceived` |

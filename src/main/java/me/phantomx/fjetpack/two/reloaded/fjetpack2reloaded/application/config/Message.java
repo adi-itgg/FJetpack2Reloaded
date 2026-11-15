@@ -15,6 +15,7 @@ public class Message {
     private @NonNull String detached = "";
     private @NonNull String outOfFuel = "";
     private @NonNull String blockedWorlds = "";
+    private @NonNull String notAllowedWorlds = "";
     private @NonNull String noFuel = "";
     private @NonNull String warnRunOutBelow = "";
     private @NonNull String onEmptyFuelDropped = "";

@@ -63,8 +63,12 @@ VIP:
   Enchantments:
     - 'unbreaking:3'
     - 'DURABILITY:3'
-  # Blocked worlds
+  # Blocked worlds - the jetpack cannot be turned on here
+  # A world listed here is refused even when it also appears in AllowedWorlds
   BlockedWorlds: []
+  # Allowed worlds - the jetpack can be turned on only in these worlds
+  # Leave it [] (or remove the key) to allow every world that is not blocked
+  AllowedWorlds: []
   # Allow player to use jetpack item only in offhand
   RunInOffHandOnly: false
 

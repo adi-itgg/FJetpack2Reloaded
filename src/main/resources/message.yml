@@ -14,6 +14,8 @@ Detached: '&cYou take off your Jetpack, making you fall to the ground'
 OutOfFuel: '&cYou are out of fuel!'
 # Player using jetpack in blocked worlds
 BlockedWorlds: "&cYou can't use Jetpack in this World!"
+# Player using jetpack in a world that is not listed in AllowedWorlds
+NotAllowedWorlds: "&cThis Jetpack is not allowed in this World!"
 # Jetpack don't have enough fuel
 NoFuel: "&cYou don't have fuel to fly!"
 # When the jetpack runs out of fuel, it will fall to the ground

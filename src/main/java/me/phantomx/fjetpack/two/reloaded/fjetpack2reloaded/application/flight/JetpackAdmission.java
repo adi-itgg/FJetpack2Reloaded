@@ -9,6 +9,8 @@ import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.Conf
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.ItemTags;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.application.port.MessageSink;
 import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.FlightCheck;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.WorldAccess;
+import me.phantomx.fjetpack.two.reloaded.fjetpack2reloaded.domain.flight.WorldPolicy;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -78,12 +80,18 @@ final class JetpackAdmission {
             return Verdict.refused(FlightCheck.NO_PERMISSION);
         }
 
-        val blockedWorld = jetpack.getBlockedWorlds().stream()
-                .anyMatch(world -> player.getWorld().getName().equals(world));
-        if (blockedWorld) {
-            log.debug("admission: refused BLOCKED - world=%s is in blockedWorlds=%s",
-                    player.getWorld().getName(), jetpack.getBlockedWorlds());
-            messages.send(player, configs.message().getBlockedWorlds());
+        val worldName = player.getWorld().getName();
+        val worlds = new WorldPolicy(jetpack.getBlockedWorlds(), jetpack.getAllowedWorlds());
+        val access = worlds.check(worldName);
+        if (access != WorldAccess.ALLOWED) {
+            log.debug("admission: refused BLOCKED - world=%s access=%s blockedWorlds=%s allowedWorlds=%s",
+                    worldName, access, jetpack.getBlockedWorlds(), jetpack.getAllowedWorlds());
+            val notice = access == WorldAccess.BLOCKED
+                    ? configs.message().getBlockedWorlds()
+                    : configs.message().getNotAllowedWorlds();
+            // an existing message.yml is never merged with new keys, so the allow-list message can be
+            // missing on an upgraded server: fall back rather than refuse the flight in silence
+            messages.send(player, notice.isEmpty() ? configs.message().getBlockedWorlds() : notice);
             return Verdict.refused(FlightCheck.BLOCKED);
         }
 

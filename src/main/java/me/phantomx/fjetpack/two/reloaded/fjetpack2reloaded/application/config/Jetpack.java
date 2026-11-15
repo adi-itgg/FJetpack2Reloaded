@@ -26,6 +26,7 @@ public class Jetpack {
     private @NonNull List<String> flags = Collections.emptyList();
     private @NonNull List<String> enchantments = Collections.emptyList();
     private @NonNull List<String> blockedWorlds = Collections.emptyList();
+    private @NonNull List<String> allowedWorlds = Collections.emptyList();
     private @NonNull ItemDisposition onEmptyFuel = ItemDisposition.NONE;
     private @NonNull ItemDisposition onDeath = ItemDisposition.NONE;
     private @NonNull Fuel fuel;
@@ -59,6 +60,7 @@ public class Jetpack {
                 ", flags=" + flags +
                 ", enchantments=" + enchantments +
                 ", blockedWorlds=" + blockedWorlds +
+                ", allowedWorlds=" + allowedWorlds +
                 ", onEmptyFuel=" + onEmptyFuel +
                 ", onDeath=" + onDeath +
                 ", fuel=" + fuel +
