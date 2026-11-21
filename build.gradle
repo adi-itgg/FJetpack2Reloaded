@@ -52,11 +52,11 @@ dependencies {
     implementation "io.avaje:avaje-inject:${injectVersion}"
     annotationProcessor "io.avaje:avaje-inject-generator:${injectVersion}"
 
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    compileOnly 'org.projectlombok:lombok:1.18.48'
+    annotationProcessor 'org.projectlombok:lombok:1.18.48'
 
-    testCompileOnly 'org.projectlombok:lombok:1.18.34'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testCompileOnly 'org.projectlombok:lombok:1.18.48'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.48'
 
     // already a compileOnly dependency; needed at test runtime so YamlConfiguration/ConfigurationSection exist
     testImplementation 'org.spigotmc:spigot-api:26.3-R0.1-SNAPSHOT'
