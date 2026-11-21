@@ -71,7 +71,7 @@ dependencies {
 
     // A java.lang.reflect.Proxy for a Bukkit interface cannot exist before a server is installed:
     // building it initialises Instrument/StructureType/Registry, which dereference Bukkit.getServer().
-    testImplementation 'org.mockito:mockito-core:5.14.2'
+    testImplementation 'org.mockito:mockito-core:5.24.0'
     // spigot-api 26.3 references net.md_5.bungee.api.dialog.Dialog from Player, but its POM does not
     // bring that class in - any reflection over Player fails with NoClassDefFoundError without it.
     testImplementation 'net.md-5:bungeecord-dialog:1.21-R0.3'
